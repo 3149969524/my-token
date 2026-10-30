@@ -1384,8 +1384,7 @@
             });
             btn.addEventListener('touchend', function(e) {
                 e.stopPropagation();
-                e.preventDefault();
-            }, { passive: false });
+            }, { passive: true });
         });
         searchDateFrom.addEventListener('change', function() { showCapsuleList(); });
         searchDateTo.addEventListener('change', function() { showCapsuleList(); });
