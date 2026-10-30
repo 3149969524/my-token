@@ -325,12 +325,8 @@
             e.stopPropagation();
         });
 
-        // 已在里屋则跳过门
-        if (sessionStorage.getItem('yu_room') === '1') {
-            innerDoor.style.display = 'none';
-            isInRoom = true;
-            roomLabel.classList.add('show');
-        }
+        // 每次打开都从外屋开始
+        sessionStorage.removeItem('yu_room');
 
         // ===== 暗门触发：连点5次最底部小字 =====
         var tapCount = 0;
