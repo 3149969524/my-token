@@ -403,19 +403,19 @@
         function initBlackHole() {
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
-            const ehR = Math.min(canvas.width, canvas.height) * 0.045; // 事件视界半径
-            const diskR = ehR * 4.5; // 吸积盘外半径
+            const ehR = Math.min(canvas.width, canvas.height) * 0.028; // 事件视界半径（缩小）
+            const diskR = ehR * 4; // 吸积盘外半径（缩小）
 
             // 生成吸积盘粒子
             const diskParticles = [];
-            const pCount = 220;
+            const pCount = 160;
             for (let i = 0; i < pCount; i++) {
-                const r = ehR * 1.3 + Math.random() * (diskR - ehR * 1.3);
+                const r = ehR * 1.25 + Math.random() * (diskR - ehR * 1.25);
                 diskParticles.push({
                     r: r,
                     angle: Math.random() * Math.PI * 2,
-                    speed: 0.002 + (1 - r / diskR) * 0.012, // 内侧更快（开普勒旋转）
-                    size: Math.random() * 1.3 + 0.4,
+                    speed: 0.003 + (1 - r / diskR) * 0.014, // 内侧更快（开普勒旋转）
+                    size: Math.random() * 1.0 + 0.3,
                     brightness: Math.random() * 0.5 + 0.5,
                     colorType: Math.random()
                 });
@@ -522,23 +522,21 @@
             if (blackHole) {
                 const bh = blackHole;
                 const cx = bh.cx, cy = bh.cy, ehR = bh.ehR, diskR = bh.diskR;
-                const rotT = t * 0.001;
 
                 // 1. 远场弥散光晕（吸积盘整体辉光）
-                const farGlow = ctx.createRadialGradient(cx, cy, ehR * 2, cx, cy, diskR * 1.8);
-                farGlow.addColorStop(0, 'rgba(100,140,220,0.06)');
-                farGlow.addColorStop(0.5, 'rgba(80,120,200,0.03)');
+                const farGlow = ctx.createRadialGradient(cx, cy, ehR * 1.5, cx, cy, diskR * 1.5);
+                farGlow.addColorStop(0, 'rgba(100,140,220,0.05)');
+                farGlow.addColorStop(0.5, 'rgba(80,120,200,0.02)');
                 farGlow.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = farGlow;
                 ctx.beginPath();
-                ctx.arc(cx, cy, diskR * 1.8, 0, Math.PI * 2);
+                ctx.arc(cx, cy, diskR * 1.5, 0, Math.PI * 2);
                 ctx.fill();
 
                 // 2. 吸积盘粒子（3D倾斜视角）
                 ctx.save();
                 ctx.translate(cx, cy);
-                // 模拟3D倾斜：Y方向压缩
-                ctx.scale(1, 0.32);
+                ctx.scale(1, 0.30); // 更扁的倾斜
 
                 for (const p of bh.diskParticles) {
                     p.angle += p.speed;
@@ -546,16 +544,16 @@
                     const py = Math.sin(p.angle) * p.r;
 
                     // 多普勒效应：靠近观察者侧更亮
-                    const doppler = (Math.cos(p.angle) + 1) * 0.5; // 0~1
-                    const bright = p.brightness * (0.35 + doppler * 0.65);
+                    const doppler = (Math.cos(p.angle) + 1) * 0.5;
+                    const bright = p.brightness * (0.3 + doppler * 0.7);
 
                     // 温度梯度：内侧白热，外侧偏蓝
-                    const tRatio = 1 - (p.r - ehR * 1.3) / (diskR - ehR * 1.3);
+                    const tRatio = 1 - (p.r - ehR * 1.25) / (diskR - ehR * 1.25);
                     let r, g, b;
                     if (p.colorType > 0.5) {
-                        r = 255; g = 220 + tRatio * 35; b = 180 + tRatio * 75;
+                        r = 255; g = 215 + tRatio * 40; b = 170 + tRatio * 85;
                     } else {
-                        r = 180 + tRatio * 75; g = 200 + tRatio * 55; b = 255;
+                        r = 170 + tRatio * 85; g = 195 + tRatio * 60; b = 255;
                     }
 
                     ctx.beginPath();
@@ -568,28 +566,28 @@
                 // 3. 引力透镜光环（上方半弧 - 背面吸积盘被弯曲到正面）
                 ctx.save();
                 ctx.translate(cx, cy);
-                const lensR = ehR * 1.35;
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = `rgba(255,230,180,0.6)`;
+                const lensR = ehR * 1.3;
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = `rgba(255,225,170,0.55)`;
                 ctx.beginPath();
-                ctx.arc(0, 0, lensR, Math.PI * 0.95, Math.PI * 2.05);
+                ctx.arc(0, 0, lensR, Math.PI * 0.92, Math.PI * 2.08);
                 ctx.stroke();
-                // 内侧更亮的光子环
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = `rgba(255,255,255,0.4)`;
+                // 内侧光子环
+                ctx.lineWidth = 0.8;
+                ctx.strokeStyle = `rgba(255,255,255,0.35)`;
                 ctx.beginPath();
-                ctx.arc(0, 0, lensR * 0.96, Math.PI * 0.95, Math.PI * 2.05);
+                ctx.arc(0, 0, lensR * 0.95, Math.PI * 0.92, Math.PI * 2.08);
                 ctx.stroke();
                 ctx.restore();
 
                 // 4. 事件视界（纯黑核心 + 边缘渐变消隐）
-                const ehGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, ehR * 1.15);
+                const ehGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, ehR * 1.12);
                 ehGrad.addColorStop(0, 'rgba(0,0,0,1)');
-                ehGrad.addColorStop(0.82, 'rgba(0,0,0,1)');
+                ehGrad.addColorStop(0.80, 'rgba(0,0,0,1)');
                 ehGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = ehGrad;
                 ctx.beginPath();
-                ctx.arc(cx, cy, ehR * 1.15, 0, Math.PI * 2);
+                ctx.arc(cx, cy, ehR * 1.12, 0, Math.PI * 2);
                 ctx.fill();
             }
 
