@@ -88,12 +88,12 @@
                 0 0 20px rgba(100,180,255,0.8),
                 0 0 50px rgba(60,120,255,0.4),
                 0 0 100px rgba(40,80,200,0.2);
-            animation: hotspotPulse 3s ease-in-out infinite;
+            animation: hotspotPulse 5s ease-in-out infinite;
             position: relative;
         }
-        .hotspot:nth-child(2) .hotspot-core { animation-delay: 0.5s; }
-        .hotspot:nth-child(3) .hotspot-core { animation-delay: 1s; }
-        .hotspot:nth-child(4) .hotspot-core { animation-delay: 1.5s; }
+        .hotspot:nth-child(2) .hotspot-core { animation-delay: 0.8s; }
+        .hotspot:nth-child(3) .hotspot-core { animation-delay: 1.6s; }
+        .hotspot:nth-child(4) .hotspot-core { animation-delay: 2.4s; }
 
         @keyframes hotspotPulse {
             0%, 100% {
@@ -101,8 +101,8 @@
                 transform: scale(1);
             }
             50% {
-                box-shadow: 0 0 35px rgba(100,180,255,1), 0 0 80px rgba(60,120,255,0.6), 0 0 150px rgba(40,80,200,0.3);
-                transform: scale(1.3);
+                box-shadow: 0 0 30px rgba(100,180,255,0.9), 0 0 65px rgba(60,120,255,0.5), 0 0 120px rgba(40,80,200,0.25);
+                transform: scale(1.15);
             }
         }
 
@@ -113,11 +113,11 @@
             width: 48px; height: 48px;
             border: 1px solid rgba(100,180,255,0.15);
             border-radius: 50%;
-            animation: ringExpand 3s ease-in-out infinite;
+            animation: ringExpand 5s ease-in-out infinite;
         }
-        .hotspot:nth-child(2) .hotspot-ring { animation-delay: 0.5s; }
-        .hotspot:nth-child(3) .hotspot-ring { animation-delay: 1s; }
-        .hotspot:nth-child(4) .hotspot-ring { animation-delay: 1.5s; }
+        .hotspot:nth-child(2) .hotspot-ring { animation-delay: 0.8s; }
+        .hotspot:nth-child(3) .hotspot-ring { animation-delay: 1.6s; }
+        .hotspot:nth-child(4) .hotspot-ring { animation-delay: 2.4s; }
 
         @keyframes ringExpand {
             0% { width: 24px; height: 24px; opacity: 0.8; }
@@ -132,7 +132,7 @@
             border: 1.5px solid rgba(120,190,255,0.5);
             border-radius: 50%;
             pointer-events: none;
-            animation: rippleWave 4s ease-out forwards;
+            animation: rippleWave 6s ease-out forwards;
         }
 
         @keyframes rippleWave {
@@ -838,23 +838,23 @@
             ripple.addEventListener('animationend', () => {
                 if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
             });
-            // 安全兜底：4.5s 后强制移除
+            // 安全兜底：6.5s 后强制移除
             setTimeout(() => {
                 if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
-            }, 4500);
+            }, 6500);
         }
 
         const hotspots = document.querySelectorAll('.hotspot');
         // 每个光点错开发射节奏，营造不同步的扩散感
         hotspots.forEach((h, i) => {
             // 首次延迟不同，让各光点波纹错开
-            const initialDelay = i * 1200;
+            const initialDelay = i * 1800;
             setTimeout(() => {
                 emitRipple(h);
-                // 之后每隔 5 秒发射一次
+                // 之后每隔 8 秒发射一次
                 setInterval(() => {
                     emitRipple(h);
-                }, 5000);
+                }, 8000);
             }, initialDelay);
         });
     </script>
