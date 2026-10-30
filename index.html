@@ -626,9 +626,7 @@
             if (e.key === 'Enter') adminLogin();
         });
         document.getElementById('adminLogoutBtn').addEventListener('click', adminLogout);
-        document.getElementById('adminModal').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('show');
-        });
+        // 管理员弹窗只能通过按钮关闭，点空白不关闭
 
         // ===== 页脚连点5次激活管理员登录 =====
         var footerClickCount = 0;
