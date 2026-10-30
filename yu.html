@@ -349,6 +349,25 @@
             padding: 0 5px;
         }
         .capsule-search.show { display: flex; }
+        .capsule-search-name {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(240,235,224,0.12);
+            border-radius: 10px;
+            color: #f0ebe0;
+            font-size: 0.88rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .capsule-search-name:focus {
+            border-color: rgba(240,235,224,0.35);
+        }
+        .capsule-search-name::placeholder {
+            color: rgba(240,235,224,0.2);
+            font-weight: 300;
+        }
         .capsule-search-row {
             display: flex;
             align-items: center;
@@ -617,6 +636,7 @@
         </div>
         <!-- 列表视图 -->
         <div class="capsule-search" id="capsuleSearch">
+            <input type="text" id="searchName" class="capsule-search-name" placeholder="🔍 按名字搜索胶囊">
             <div class="capsule-search-row">
                 <span class="capsule-search-label">从</span>
                 <input type="date" id="searchDateFrom" placeholder="开始日期">
@@ -648,6 +668,8 @@
         <!-- 写胶囊表单 -->
         <div class="capsule-write" id="capsuleWrite">
             <div class="capsule-title" style="margin-bottom:4px;">写一颗时间胶囊</div>
+            <label>给胶囊起个名字</label>
+            <input type="text" id="writeName" placeholder="比如：给明年自己的信" maxlength="30">
             <label>开启时间</label>
             <input type="datetime-local" id="writeDate" min="2026-10-31T00:00">
             <label>写点什么（给未来的信）</label>
@@ -935,6 +957,7 @@
         var writeContent = document.getElementById('writeContent');
         var writePassword = document.getElementById('writePassword');
         var writeSubmit = document.getElementById('writeSubmit');
+        var writeName = document.getElementById('writeName');
         var capToast = document.getElementById('capsuleToast');
 
         function showCapToast(msg) {
@@ -1079,6 +1102,7 @@
         var capsuleSearch = document.getElementById('capsuleSearch');
         var searchDateFrom = document.getElementById('searchDateFrom');
         var searchDateTo = document.getElementById('searchDateTo');
+        var searchName = document.getElementById('searchName');
         var capsuleSearchCount = document.getElementById('capsuleSearchCount');
         var currentFilter = 'all';
 
@@ -1113,10 +1137,18 @@
             });
 
             var now = new Date();
+            var nameQuery = (searchName.value || '').trim().toLowerCase();
             var filtered = sorted.filter(function(item) {
                 var cap = item.cap;
                 var capDate = new Date(normalizeCapDate(cap.date));
 
+                // 名字搜索
+                if (nameQuery) {
+                    var capName = (cap.name || '第' + (item.idx+1) + '颗').toLowerCase();
+                    if (capName.indexOf(nameQuery) === -1) return false;
+                }
+
+                // 快捷筛选
                 if (currentFilter === 'upcoming' && capDate <= now) return false;
                 if (currentFilter === 'opened' && capDate > now) return false;
                 if (currentFilter === 'near7') {
@@ -1124,6 +1156,7 @@
                     if (diff < 0 || diff > 7 * 86400000) return false;
                 }
 
+                // 日期范围筛选
                 var fromDate = searchDateFrom.value;
                 var toDate = searchDateTo.value;
                 if (fromDate) {
@@ -1163,7 +1196,7 @@
                 card.className = 'capsule-card';
                 var title = document.createElement('div');
                 title.className = 'capsule-card-title';
-                title.textContent = '第 ' + (realIdx+1) + ' 颗';
+                title.textContent = cap.name || ('第 ' + (realIdx+1) + ' 颗');
                 var date = document.createElement('div');
                 date.className = 'capsule-card-date';
                 date.textContent = '开启：' + formatCapDate(cap.date);
@@ -1224,7 +1257,7 @@
             capsuleInput.value = '';
 
             if (!isCapsuleOpen(cap)) {
-                capsuleTitle.textContent = '还没到时候';
+                capsuleTitle.textContent = cap.name || ('第 ' + (idx+1) + ' 颗');
                 capsuleCountdown.textContent = '还有 ' + getCountdown(cap);
             } else {
                 if (!cap.locked) {
@@ -1249,7 +1282,7 @@
         function doDecryptCapsule(idx) {
             var all = getAllCapsules();
             var cap = all[idx];
-            capsuleTitle.textContent = '时间到了';
+            capsuleTitle.textContent = cap.name || ('第 ' + (idx+1) + ' 颗');
             capsuleCountdown.textContent = '';
             capsuleLock.style.display = 'none';
             capsuleContent.style.display = 'none';
@@ -1308,6 +1341,7 @@
             capsuleDetail.classList.remove('show');
             capWrite.classList.add('show');
             capsuleBack.style.display = 'block';
+            writeName.value = '';
             writeDate.value = '';
             writeContent.value = '';
             writePassword.value = '';
@@ -1317,6 +1351,7 @@
         }
 
         async function submitCapsule() {
+            var name = writeName.value.trim();
             var date = writeDate.value;
             var content = writeContent.value.trim();
             var pwd = writePassword.value.trim();
@@ -1334,6 +1369,7 @@
                 var encData = await encryptCapsule(content, encKey);
 
                 var newCap = {
+                    name: name || '',
                     date: date,
                     data: encData,
                     key: pwd || encKey,
@@ -1392,6 +1428,10 @@
         searchDateTo.addEventListener('click', function(e) { e.stopPropagation(); });
         searchDateFrom.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
         searchDateTo.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        // 名字搜索
+        searchName.addEventListener('input', function() { showCapsuleList(); });
+        searchName.addEventListener('click', function(e) { e.stopPropagation(); });
+        searchName.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
 
         function closeCapsule() {
             capsuleModal.classList.add('hide');
@@ -1406,6 +1446,7 @@
                 capsuleBack.style.display = 'none';
                 currentCapsule = -1;
                 // 重置搜索
+                searchName.value = '';
                 searchDateFrom.value = '';
                 searchDateTo.value = '';
                 currentFilter = 'all';
