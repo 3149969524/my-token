@@ -355,7 +355,7 @@
         function initStars() {
             // 普通闪烁星（超大密度）
             stars = [];
-            const count = Math.floor((canvas.width * canvas.height) / 800);
+            const count = Math.floor((canvas.width * canvas.height) / 1200);
             for (let i = 0; i < count; i++) {
                 const ct = Math.random();
                 let color;
@@ -642,11 +642,11 @@
             for (let i = shootingStars.length - 1; i >= 0; i--) {
                 const ss = shootingStars[i];
                 ss.trail.push({ x: ss.x, y: ss.y });
-                if (ss.trail.length > 30) ss.trail.shift();
+                if (ss.trail.length > 20) ss.trail.shift();
 
                 // 沿运动方向生成3D光环
                 ss.rippleTimer++;
-                if (ss.rippleTimer % 6 === 0 && ss.life > 0.3) {
+                if (ss.rippleTimer % 9 === 0 && ss.life > 0.3) {
                     const angle = Math.atan2(ss.vy, ss.vx);
                     ss.ripples.push({ x: ss.x, y: ss.y, life: 1, angle: angle });
                 }
@@ -668,7 +668,7 @@
                     // 外层柔光
                     const outerGrad = ctx.createRadialGradient(0, 0, ringH * 0.8, 0, 0, ringW);
                     outerGrad.addColorStop(0, `rgba(100,180,255,0)`);
-                    outerGrad.addColorStop(0.7, `rgba(100,180,255,${rpLife * 0.12})`);
+                    outerGrad.addColorStop(0.7, `rgba(100,180,255,${rpLife * 0.1})`);
                     outerGrad.addColorStop(1, 'rgba(100,180,255,0)');
                     ctx.fillStyle = outerGrad;
                     ctx.beginPath();
@@ -676,35 +676,35 @@
                     ctx.fill();
 
                     // 主光环线 - 透视椭圆
-                    ctx.lineWidth = 1.5 * rpLife;
-                    ctx.strokeStyle = `rgba(140,200,255,${rpLife * 0.5})`;
+                    ctx.lineWidth = 1.2 * rpLife;
+                    ctx.strokeStyle = `rgba(140,200,255,${rpLife * 0.4})`;
                     ctx.beginPath();
                     ctx.ellipse(0, 0, ringW, ringH, 0, 0, Math.PI * 2);
                     ctx.stroke();
 
                     // 高光弧（3D球体上半部反光）
-                    ctx.lineWidth = 2 * rpLife;
-                    ctx.strokeStyle = `rgba(255,255,255,${rpLife * 0.35})`;
+                    ctx.lineWidth = 1.5 * rpLife;
+                    ctx.strokeStyle = `rgba(255,255,255,${rpLife * 0.28})`;
                     ctx.beginPath();
                     ctx.ellipse(0, -ringH * 0.35, ringW * 0.78, ringH * 0.78, 0, Math.PI * 1.15, Math.PI * 1.85);
                     ctx.stroke();
 
                     // 底部暗影弧（3D球体下半部暗面）
-                    ctx.lineWidth = 1 * rpLife;
-                    ctx.strokeStyle = `rgba(60,100,180,${rpLife * 0.18})`;
+                    ctx.lineWidth = 0.8 * rpLife;
+                    ctx.strokeStyle = `rgba(60,100,180,${rpLife * 0.14})`;
                     ctx.beginPath();
                     ctx.ellipse(0, ringH * 0.35, ringW * 0.78, ringH * 0.78, 0, Math.PI * 0.15, Math.PI * 0.85);
                     ctx.stroke();
 
                     ctx.restore();
 
-                    rp.life -= 0.025;
+                    rp.life -= 0.03;
                     if (rp.life <= 0) ss.ripples.splice(k, 1);
                 }
 
                 // ===== 冲破气浪效果 =====
                 ss.shockTimer++;
-                if (ss.shockTimer % 4 === 0 && ss.life > 0.25) {
+                if (ss.shockTimer % 7 === 0 && ss.life > 0.25) {
                     const angle = Math.atan2(ss.vy, ss.vx);
                     ss.shocks.push({ x: ss.x, y: ss.y, life: 1, angle: angle });
                 }
@@ -720,15 +720,15 @@
 
                     // 弓形激波前缘（前方亮弧）
                     const bowR = sRadius * 1.2;
-                    ctx.lineWidth = 1.8 * sLife;
-                    ctx.strokeStyle = `rgba(180,220,255,${sLife * 0.35})`;
+                    ctx.lineWidth = 1.5 * sLife;
+                    ctx.strokeStyle = `rgba(180,220,255,${sLife * 0.3})`;
                     ctx.beginPath();
                     ctx.ellipse(-sRadius * 0.3, 0, bowR, bowR * 0.7, 0, -Math.PI * 0.75, -Math.PI * 0.25);
                     ctx.stroke();
 
-                    // 两侧气浪扩散（向后展开的翼形弧）
-                    ctx.lineWidth = 1.2 * sLife;
-                    ctx.strokeStyle = `rgba(120,180,255,${sLife * 0.22})`;
+                    // 两侧气浪扩散（单层，去掉远层翼弧减负）
+                    ctx.lineWidth = 1.0 * sLife;
+                    ctx.strokeStyle = `rgba(120,180,255,${sLife * 0.18})`;
                     ctx.beginPath();
                     ctx.ellipse(-sRadius * 0.5, 0, sRadius * 1.8, sRadius * 1.1, 0, -Math.PI * 0.88, -Math.PI * 0.62);
                     ctx.stroke();
@@ -736,19 +736,9 @@
                     ctx.ellipse(-sRadius * 0.5, 0, sRadius * 1.8, sRadius * 1.1, 0, -Math.PI * 0.38, -Math.PI * 0.12);
                     ctx.stroke();
 
-                    // 更远层气浪尾迹（最淡的扩散翼）
-                    ctx.lineWidth = 0.8 * sLife;
-                    ctx.strokeStyle = `rgba(100,160,230,${sLife * 0.12})`;
-                    ctx.beginPath();
-                    ctx.ellipse(-sRadius * 0.8, 0, sRadius * 2.6, sRadius * 1.5, 0, -Math.PI * 0.9, -Math.PI * 0.6);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.ellipse(-sRadius * 0.8, 0, sRadius * 2.6, sRadius * 1.5, 0, -Math.PI * 0.4, -Math.PI * 0.1);
-                    ctx.stroke();
-
                     ctx.restore();
 
-                    sh.life -= 0.04;
+                    sh.life -= 0.05;
                     if (sh.life <= 0) ss.shocks.splice(k, 1);
                 }
 
@@ -792,10 +782,10 @@
         }
 
         setInterval(() => {
-            if (Math.random() > 0.55 && shootingStars.length < 4) {
+            if (Math.random() > 0.6 && shootingStars.length < 3) {
                 createShootingStar();
             }
-        }, 3500);
+        }, 4500);
 
         function resize() {
             canvas.width = window.innerWidth;
