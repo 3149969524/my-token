@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>屿语</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,87 +24,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ===== 密码锁屏 ===== */
-        .lock-screen {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease;
-        }
-        .lock-screen.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .lock-title {
-            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 300;
-            color: rgba(240, 235, 224, 0.85);
-            letter-spacing: 0.3em;
-            margin-bottom: 36px;
-            text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
-        }
-        .lock-input {
-            width: 240px;
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            color: #f0ebe0;
-            font-size: 1rem;
-            font-family: 'Noto Sans SC', sans-serif;
-            text-align: center;
-            letter-spacing: 0.15em;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .lock-input:focus {
-            border-color: rgba(240, 235, 224, 0.4);
-        }
-        .lock-input::placeholder {
-            color: rgba(240, 235, 224, 0.25);
-            font-weight: 300;
-            letter-spacing: 0.1em;
-        }
-        .lock-btn {
-            margin-top: 20px;
-            padding: 10px 44px;
-            background: transparent;
-            border: 1px solid rgba(240, 235, 224, 0.25);
-            border-radius: 50px;
-            color: rgba(240, 235, 224, 0.7);
-            font-size: 0.9rem;
-            font-family: 'Noto Sans SC', sans-serif;
-            letter-spacing: 0.2em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .lock-btn:hover {
-            background: rgba(240, 235, 224, 0.08);
-            border-color: rgba(240, 235, 224, 0.45);
-            color: #f0ebe0;
-        }
-        .lock-hint {
-            margin-top: 16px;
-            font-size: 0.72rem;
-            color: rgba(240, 235, 224, 0.2);
-            font-family: 'Noto Sans SC', sans-serif;
-            letter-spacing: 0.15em;
-        }
-        .lock-shake {
-            animation: shake 0.4s ease;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
-
+        /* ===== 句子样式 ===== */
         .sentence {
             font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             font-weight: 300;
@@ -120,11 +40,15 @@
             -webkit-user-select: none;
             text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
         }
+        .sentence.show { opacity: 1; }
 
-        .sentence.show {
-            opacity: 1;
+        /* 里屋句子带一点暖色 */
+        .sentence.warm {
+            color: #f5e6c8;
+            text-shadow: 0 0 20px rgba(245, 230, 200, 0.12);
         }
 
+        /* ===== 签名 ===== */
         .sign {
             position: fixed;
             bottom: 28px;
@@ -137,66 +61,173 @@
             letter-spacing: 0.5em;
             user-select: none;
             -webkit-user-select: none;
+            z-index: 5;
         }
+
+        /* ===== 暗门 ===== */
+        .secret-door {
+            position: fixed;
+            bottom: 12px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 300;
+            color: rgba(240, 235, 224, 0.08);
+            letter-spacing: 0.15em;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+            transition: color 0.6s ease;
+            z-index: 5;
+        }
+        .secret-door:hover { color: rgba(240, 235, 224, 0.15); }
+
+        /* ===== 里屋门 ===== */
+        .inner-door {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        .inner-door.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .door-title {
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: rgba(240, 235, 224, 0.7);
+            letter-spacing: 0.3em;
+            margin-bottom: 36px;
+            text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
+        }
+        .door-input {
+            width: 220px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #f0ebe0;
+            font-size: 0.95rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            letter-spacing: 0.1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .door-input:focus {
+            border-color: rgba(240, 235, 224, 0.35);
+        }
+        .door-input::placeholder {
+            color: rgba(240, 235, 224, 0.18);
+            font-weight: 300;
+        }
+        .door-btn {
+            margin-top: 18px;
+            padding: 8px 36px;
+            background: transparent;
+            border: 1px solid rgba(240, 235, 224, 0.2);
+            border-radius: 50px;
+            color: rgba(240, 235, 224, 0.6);
+            font-size: 0.85rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .door-btn:hover {
+            background: rgba(240, 235, 224, 0.06);
+            border-color: rgba(240, 235, 224, 0.4);
+            color: #f0ebe0;
+        }
+        .door-hint {
+            margin-top: 14px;
+            font-size: 0.68rem;
+            color: rgba(240, 235, 224, 0.15);
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.1em;
+        }
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* ===== 里屋标识 ===== */
+        .room-label {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 300;
+            color: rgba(245, 230, 200, 0.12);
+            letter-spacing: 0.4em;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 5;
+            display: none;
+        }
+        .room-label.show { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- ===== 密码锁屏 ===== -->
-    <div class="lock-screen" id="lockScreen">
-        <div class="lock-title">屿语</div>
-        <input type="password" class="lock-input" id="lockInput" placeholder="请输入密码" autocomplete="off">
-        <button class="lock-btn" id="lockBtn">进入</button>
-        <div class="lock-hint">屿只对有密码的人说话</div>
+    <!-- ===== 里屋暗门 ===== -->
+    <div class="inner-door" id="innerDoor">
+        <div class="door-title">里屋</div>
+        <input type="password" class="door-input" id="doorInput" placeholder="暗号" autocomplete="off">
+        <button class="door-btn" id="doorBtn">进来</button>
+        <div class="door-hint">门是虚掩的</div>
     </div>
 
+    <!-- ===== 里屋标识 ===== -->
+    <div class="room-label" id="roomLabel">里屋</div>
+
+    <!-- ===== 句子 ===== -->
     <div class="sentence" id="sentence"></div>
 
+    <!-- ===== 签名 ===== -->
     <div class="sign">屿语</div>
 
+    <!-- ===== 暗门入口 ===== -->
+    <div class="secret-door" id="secretDoor">·</div>
+
     <script>
-        // ===== 密码验证 =====
+        // ===== 暗号 =====
         var PASSWORD = 'hmj1314520';
-        var lockScreen = document.getElementById('lockScreen');
-        var lockInput = document.getElementById('lockInput');
-        var lockBtn = document.getElementById('lockBtn');
 
-        function tryUnlock() {
-            if (lockInput.value === PASSWORD) {
-                lockScreen.classList.add('hide');
-                setTimeout(function() {
-                    lockScreen.style.display = 'none';
-                    sessionStorage.setItem('yu_unlocked', '1');
-                }, 800);
-            } else {
-                lockInput.classList.add('lock-shake');
-                lockInput.value = '';
-                setTimeout(function() {
-                    lockInput.classList.remove('lock-shake');
-                }, 400);
-            }
-        }
+        // ===== 外屋句子（给陌生人的）=====
+        var outerSentences = [
+            '潮水每天来两次 从不失约',
+            '岛不说话 但岛一直都在',
+            '浪把沙堡冲走了 会留下贝壳',
+            '灯塔不追船 它只管亮着',
+            '你说的话 有人在听',
+            '陌生人 我也在深夜醒着',
+            '别急 有人正朝着你走',
+            '你不必闪闪发光 平平淡淡也很好',
+            '难过的时候记得喝水',
+            '今晚的月亮不好看 但明天还有月亮',
+            '晚安 不管你是谁',
+            '你翻到这一秒 世界刚好需要你多待一秒'
+        ];
 
-        lockBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            tryUnlock();
-        });
-
-        lockInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                tryUnlock();
-            }
-            e.stopPropagation();
-        });
-
-        // 已解锁则跳过锁屏（同一会话内）
-        if (sessionStorage.getItem('yu_unlocked') === '1') {
-            lockScreen.style.display = 'none';
-        }
-
-        // ===== 句子列表 =====
-        var sentences = [
+        // ===== 里屋句子（给主人的）=====
+        var innerSentences = [
             // 催睡的
             '十一点了小猪 该刷牙了',
             '手机放下 眼睛还要不要了',
@@ -225,42 +256,135 @@
             '别怕 汐没来过 潮不会走'
         ];
 
-        // ===== 逻辑 =====
+        // ===== 状态 =====
+        var isInRoom = false;
         var current = -1;
         var el = document.getElementById('sentence');
+        var innerDoor = document.getElementById('innerDoor');
+        var doorInput = document.getElementById('doorInput');
+        var doorBtn = document.getElementById('doorBtn');
+        var secretDoor = document.getElementById('secretDoor');
+        var roomLabel = document.getElementById('roomLabel');
 
+        // ===== 换句 =====
         function showSentence() {
-            if (sentences.length === 0) return;
+            var pool = isInRoom ? innerSentences : outerSentences;
+            if (pool.length === 0) return;
 
             el.classList.remove('show');
 
             setTimeout(function() {
                 var next;
                 do {
-                    next = Math.floor(Math.random() * sentences.length);
-                } while (next === current && sentences.length > 1);
+                    next = Math.floor(Math.random() * pool.length);
+                } while (next === current && pool.length > 1);
                 current = next;
-                el.textContent = sentences[current];
+                el.textContent = pool[current];
+                if (isInRoom) {
+                    el.classList.add('warm');
+                } else {
+                    el.classList.remove('warm');
+                }
                 el.classList.add('show');
             }, 1200);
         }
 
-        // 初始显示
+        // ===== 进里屋 =====
+        function tryEnter() {
+            if (doorInput.value === PASSWORD) {
+                innerDoor.classList.add('hide');
+                isInRoom = true;
+                roomLabel.classList.add('show');
+                sessionStorage.setItem('yu_room', '1');
+                // 重置换句，用里屋句子
+                current = -1;
+                el.classList.remove('show');
+                setTimeout(function() {
+                    innerDoor.style.display = 'none';
+                    showSentence();
+                }, 800);
+            } else {
+                doorInput.classList.add('shake');
+                doorInput.value = '';
+                setTimeout(function() {
+                    doorInput.classList.remove('shake');
+                }, 400);
+            }
+        }
+
+        doorBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tryEnter();
+        });
+
+        doorInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                tryEnter();
+            }
+            e.stopPropagation();
+        });
+
+        // 已在里屋则跳过门
+        if (sessionStorage.getItem('yu_room') === '1') {
+            innerDoor.style.display = 'none';
+            isInRoom = true;
+            roomLabel.classList.add('show');
+        }
+
+        // ===== 暗门触发：连点5次最底部小字 =====
+        var tapCount = 0;
+        var tapTimer = null;
+
+        secretDoor.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tapCount++;
+            // 点了之后小字变亮一点，给反馈
+            secretDoor.style.color = 'rgba(240, 235, 224, 0.2)';
+            setTimeout(function() {
+                secretDoor.style.color = '';
+            }, 300);
+
+            if (tapCount >= 5) {
+                tapCount = 0;
+                innerDoor.style.display = 'flex';
+                innerDoor.classList.remove('hide');
+                // 让门慢慢出现
+                innerDoor.style.opacity = '0';
+                innerDoor.style.transition = 'opacity 0.6s ease';
+                requestAnimationFrame(function() {
+                    innerDoor.style.opacity = '1';
+                });
+                setTimeout(function() {
+                    doorInput.focus();
+                }, 600);
+            }
+
+            clearTimeout(tapTimer);
+            tapTimer = setTimeout(function() {
+                tapCount = 0;
+            }, 2000);
+        });
+
+        // ===== 初始显示 =====
         showSentence();
 
-        // 点击换一句
+        // ===== 点击换句 =====
         document.addEventListener('click', function(e) {
-            // 锁屏显示时不触发换句
-            if (lockScreen.style.display !== 'none' && !lockScreen.classList.contains('hide')) return;
+            // 里屋门开着时不触发
+            if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.classList.contains('sign')) return;
+            if (e.target.classList.contains('secret-door')) return;
+            if (e.target.closest('.inner-door')) return;
             showSentence();
         });
 
         // 防止双击放大
         document.addEventListener('touchend', function(e) {
-            // 锁屏显示时不阻止默认行为，让输入框正常获得焦点
-            if (lockScreen.style.display !== 'none' && !lockScreen.classList.contains('hide')) return;
+            if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.classList.contains('sign')) return;
+            if (e.target.classList.contains('secret-door')) return;
+            if (e.target.closest('.inner-door')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
