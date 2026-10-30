@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💬 留言板</title>
+    <title>🌟 我的个人网站</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #667eea;
             --primary-dark: #764ba2;
-            --accent: #f093fb;
             --dark: #1a1a2e;
             --light: #f8f9fa;
             --gray: #666;
             --white: #fff;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --danger: #e74c3c;
         }
 
         html { scroll-behavior: smooth; }
@@ -30,783 +28,188 @@
             min-height: 100vh;
         }
 
-        /* ===== 顶部横幅 ===== */
-        .banner {
+        /* ===== 导航栏 ===== */
+        .navbar {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 20px;
+        }
+        .navbar-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+        .navbar-logo {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 8px;
+        }
+        .navbar-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .navbar-links a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar-links a.active { color: #fff; background: rgba(255,255,255,0.15); }
+
+        /* ===== Hero 区域 ===== */
+        .hero {
             background: var(--gradient);
             color: var(--white);
             text-align: center;
-            padding: 60px 20px 50px;
+            padding: 80px 20px 70px;
             position: relative;
             overflow: hidden;
         }
-
-        .banner::before {
+        .hero::before {
             content: '';
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
             background-size: 30px 30px;
-            animation: bannerMove 20s linear infinite;
+            animation: heroMove 20s linear infinite;
         }
-
-        @keyframes bannerMove {
+        @keyframes heroMove {
             0% { transform: translate(0, 0); }
             100% { transform: translate(30px, 30px); }
         }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.3); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .banner-content { position: relative; z-index: 2; }
-        .banner h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .banner p { font-size: 1.1rem; opacity: 0.9; }
-        .banner .underline { width: 60px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 2px; margin: 15px auto 0; }
-
-        /* ===== 管理员标志 ===== */
-        .admin-badge {
+        .hero-content { position: relative; z-index: 2; }
+        .hero h1 { font-size: 2.8rem; margin-bottom: 12px; }
+        .hero p { font-size: 1.15rem; opacity: 0.9; max-width: 500px; margin: 0 auto 25px; }
+        .hero-btn {
             display: inline-block;
             background: rgba(255,255,255,0.2);
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            margin-left: 8px;
-        }
-
-        /* ===== 留言板主体 ===== */
-        .board-container { max-width: 750px; margin: 0 auto; padding: 40px 20px; }
-
-        .message-input-area {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message-input-area input,
-        .message-input-area textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-
-        .message-input-area input:focus,
-        .message-input-area textarea:focus { outline: none; border-color: var(--primary); }
-        .message-input-area textarea { resize: vertical; min-height: 80px; }
-
-        .message-submit-btn {
-            align-self: flex-end;
-            padding: 10px 30px;
-            background: var(--gradient);
-            color: var(--white);
-            border: none;
+            color: #fff;
+            padding: 12px 36px;
             border-radius: 50px;
+            text-decoration: none;
             font-size: 1rem;
             font-weight: 600;
-            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.4);
             transition: all 0.3s;
         }
+        .hero-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
 
-        .message-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .message-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-        /* ===== 留言列表 ===== */
-        .messages-list { display: flex; flex-direction: column; gap: 16px; }
-
-        .message-item {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 16px 20px;
-            border-left: 4px solid var(--primary);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
+        /* ===== 卡片区域 ===== */
+        .cards-section {
+            max-width: 800px;
+            margin: -40px auto 0;
+            padding: 0 20px;
             position: relative;
+            z-index: 5;
         }
-
-        .message-item:hover { transform: translateX(4px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
-
-        .message-item .msg-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
         }
-
-        .message-item .msg-name { font-weight: 600; color: var(--dark); font-size: 0.95rem; }
-        .message-item .msg-time { color: var(--gray); font-size: 0.8rem; }
-        .message-item .msg-content { color: #444; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
-
-        /* ===== 管理员删除按钮 ===== */
-        .msg-delete-btn {
-            background: var(--danger);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .msg-delete-btn:hover { background: #c0392b; transform: scale(1.05); }
-
-        .msg-admin-actions {
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed #eee;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .message-empty {
-            text-align: center; color: var(--gray); padding: 50px 30px;
-            font-size: 1rem; background: var(--white); border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .message-count { text-align: center; color: var(--gray); font-size: 0.85rem; margin-bottom: 16px; }
-
-        /* ===== 页脚 ===== */
-        .footer { text-align: center; color: var(--gray); padding: 30px 20px; font-size: 0.85rem; }
-        .footer p { user-select: none; -webkit-user-select: none; cursor: default; }
-
-        /* ===== 管理员登录弹窗 ===== */
-        .admin-modal {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden;
-            transition: all 0.3s;
-        }
-        .admin-modal.show { opacity: 1; visibility: visible; }
-
-        .admin-modal-box {
+        .card {
             background: var(--white);
             border-radius: 16px;
-            padding: 30px;
-            width: 90%; max-width: 360px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            transform: translateY(20px);
-            transition: transform 0.3s;
-        }
-        .admin-modal.show .admin-modal-box { transform: translateY(0); }
-
-        .admin-modal-box h3 { text-align: center; margin-bottom: 20px; font-size: 1.3rem; padding-right: 30px; }
-        .admin-close-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; font-size: 1.4rem;
-            color: #999; cursor: pointer; line-height: 1;
-        }
-        .admin-close-btn:hover { color: #e74c3c; }
-        .admin-modal-box input {
-            width: 100%; padding: 12px 16px;
-            border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 1rem; margin-bottom: 12px;
-        }
-        .admin-modal-box input:focus { outline: none; border-color: var(--primary); }
-        .admin-modal-box button { width: 100%; }
-        .admin-modal-box .admin-hint { text-align: center; color: var(--gray); font-size: 0.8rem; margin-top: 12px; }
-        .admin-modal-box .admin-error { color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 8px; display: none; }
-
-        /* ===== 侧边留言浮窗 ===== */
-        .msg-float-btn {
-            position: fixed; right: 25px; bottom: 25px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: var(--gradient); color: var(--white);
-            border: none; font-size: 1.4rem; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
-            z-index: 998; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .msg-float-btn:hover { transform: scale(1.1); }
-
-        .msg-sidebar {
-            position: fixed; top: 0; right: -380px;
-            width: 380px; max-width: 100vw; height: 100vh;
-            background: var(--white);
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.15);
-            z-index: 1001; transition: right 0.3s ease;
-            display: flex; flex-direction: column;
-        }
-        .msg-sidebar.open { right: 0; }
-        .msg-sidebar-header { padding: 20px; background: var(--gradient); color: var(--white); display: flex; justify-content: space-between; align-items: center; }
-        .msg-sidebar-header h3 { font-size: 1.2rem; }
-        .msg-sidebar-close { background: none; border: none; color: var(--white); font-size: 1.5rem; cursor: pointer; }
-        .msg-sidebar-body { flex: 1; overflow-y: auto; }
-
-        .msg-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1000; opacity: 0; visibility: hidden;
+            padding: 30px 24px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark);
             transition: all 0.3s;
         }
-        .msg-overlay.show { opacity: 1; visibility: visible; }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 14px; }
+        .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+        .card p { color: var(--gray); font-size: 0.88rem; }
 
-        @media (max-width: 768px) {
-            .banner h1 { font-size: 1.8rem; }
-            .msg-sidebar { width: 100vw; right: -100vw; }
+        /* ===== 介绍区域 ===== */
+        .about-section {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .about-section h2 { font-size: 1.6rem; margin-bottom: 16px; }
+        .about-section p { color: #555; font-size: 1rem; margin-bottom: 12px; }
+
+        /* ===== 页脚 ===== */
+        .footer { text-align: center; color: var(--gray); padding: 40px 20px; font-size: 0.85rem; background: #fff; border-top: 1px solid #eee; }
+        .footer p { user-select: none; -webkit-user-select: none; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .navbar-links a { padding: 6px 10px; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== 顶部横幅 ===== -->
-    <header class="banner">
-        <div class="banner-content">
-            <h1>💬 留言板<span id="adminBadge" class="admin-badge" style="display:none;">管理员</span></h1>
-            <p>留下你的足迹，说说你想说的</p>
-            <div class="underline"></div>
+    <!-- ===== 导航栏 ===== -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-logo">🌟 我的网站</a>
+            <div class="navbar-links">
+                <a href="index.html" class="active">首页</a>
+                <a href="board.html">留言板</a>
+                <a href="about.html">关于</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== Hero ===== -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>✨ 欢迎来到我的网站</h1>
+            <p>这是一个由个人搭建的小小空间，你可以在这里留言、闲逛、认识我。</p>
+            <a href="board.html" class="hero-btn">去留言板看看 →</a>
         </div>
     </header>
 
-    <!-- ===== 管理员操作栏（仅管理员可见）===== -->
-    <div id="adminBar" style="display:none; background:#fff; border-bottom:1px solid #eee; padding:10px 20px; text-align:center;">
-        <button id="adminLogoutBtn" style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-size:0.85rem;">退出管理员模式</button>
-    </div>
+    <!-- ===== 功能卡片 ===== -->
+    <section class="cards-section">
+        <div class="cards-grid">
+            <a href="board.html" class="card">
+                <div class="card-icon">💬</div>
+                <h3>留言板</h3>
+                <p>留下你想说的话，实时更新</p>
+            </a>
+            <a href="about.html" class="card">
+                <div class="card-icon">📖</div>
+                <h3>关于本站</h3>
+                <p>了解这个网站的来历</p>
+            </a>
+            <a href="board.html" class="card">
+                <div class="card-icon">🔄</div>
+                <h3>实时互动</h3>
+                <p>留言即时显示给所有人</p>
+            </a>
+        </div>
+    </section>
 
-    <!-- ===== 留言板主体 ===== -->
-    <main class="board-container">
-        <div class="message-input-area">
-            <input type="text" id="boardName" placeholder="你的昵称（可选）" maxlength="20">
-            <textarea id="boardMsg" placeholder="写下你的留言..." maxlength="500"></textarea>
-            <button class="message-submit-btn" id="boardSubmit">发布留言 ✈</button>
-        </div>
-        <div class="message-count" id="msgCount"></div>
-        <div style="text-align:center; margin-bottom:12px;">
-            <button id="manualRefreshBtn" style="background:var(--primary); color:#fff; border:none; padding:6px 20px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:all 0.2s;">🔄 刷新</button>
-            <span id="liveDot" style="display:inline-block; width:8px; height:8px; background:#2ecc71; border-radius:50%; margin-left:10px; vertical-align:middle; animation:pulse 1.5s infinite;"></span>
-            <span style="color:var(--gray); font-size:0.75rem; vertical-align:middle;">实时更新中</span>
-        </div>
-        <div class="messages-list" id="boardList">
-            <div class="message-empty">留言加载中... ⏳</div>
-        </div>
-    </main>
+    <!-- ===== 介绍 ===== -->
+    <section class="about-section">
+        <h2>👋 你好呀</h2>
+        <p>这个网站托管在 GitHub Pages 上，完全免费运行。</p>
+        <p>没有服务器、没有数据库，所有留言数据都安全地存储在 GitHub 仓库里。</p>
+        <p>如果你有什么想对我说的，就去留言板写两句吧！</p>
+    </section>
 
-    <!-- ===== 页脚（连点5次激活管理员登录）===== -->
+    <!-- ===== 页脚 ===== -->
     <footer class="footer">
-        <p id="footerText">✨ 留言板 · 永久在线</p>
+        <p>🌟 我的个人网站 · 留言板 · 关于 · 永久在线</p>
     </footer>
 
-    <!-- ===== 管理员登录弹窗 ===== -->
-    <div class="admin-modal" id="adminModal">
-        <div class="admin-modal-box" style="position:relative;">
-            <button class="admin-close-btn" id="adminCloseBtn">✕</button>
-            <h3>🔒 管理员验证</h3>
-            <input type="password" id="adminPwdInput" placeholder="请输入管理员密码" maxlength="30">
-            <button class="message-submit-btn" id="adminLoginBtn" style="width:100%;">验证身份</button>
-            <p class="admin-error" id="adminError">密码错误，请重试</p>
-            <p class="admin-hint">仅管理员可删除留言</p>
-        </div>
-    </div>
-
-    <!-- ===== 侧边介绍浮窗 ===== -->
-    <button class="msg-float-btn" id="msgFloatBtn" title="网页介绍">ℹ️</button>
-    <div class="msg-overlay" id="msgOverlay"></div>
-    <div class="msg-sidebar" id="msgSidebar">
-        <div class="msg-sidebar-header">
-            <h3>📋 网页介绍</h3>
-            <button class="msg-sidebar-close" id="msgCloseBtn">✕</button>
-        </div>
-        <div class="msg-sidebar-body" id="sidebarList" style="padding:30px 24px; line-height:1.8;">
-            <div style="text-align:center; margin-bottom:24px;">
-                <div style="font-size:3rem; margin-bottom:12px;">💬</div>
-                <h2 style="color:var(--dark); font-size:1.4rem; margin:0;">留言板</h2>
-            </div>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">本页面你可以留言给任何人。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">无论是想对朋友说的话、对某人的感谢、或者是一段匿名告白，都可以在这里留下你的足迹。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">📝 在下方输入区域填写昵称和留言内容，点击发布即可。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🔄 页面每 <b>5秒</b> 自动刷新一次，你发送的留言会实时显示给所有人。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🟢 绿色圆点闪烁表示实时更新中。</p>
-            <div style="margin-top:24px; padding-top:20px; border-top:1px solid #eee; text-align:center;">
-                <p style="color:var(--gray); font-size:0.8rem;">✨ 留言板 · 永久在线</p>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ===== 留言系统（GitHub 存储 + CDN加速 + 管理员模式）=====
-        var GH_TOKEN = ['ghp_','2UCi','moLD','HTMP','EQrp','s8pq','5pBv','KllM','QK30','akIN'].join('');
-        var GH_OWNER = '3149969524';
-        var GH_REPO = 'my-token';
-        var GH_FILE = 'messages.json';
-        var RAW_URL = 'https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/main/' + GH_FILE;
-        var API_URL = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE;
-        var CDN_URL = 'https://cdn.jsdelivr.net/gh/' + GH_OWNER + '/' + GH_REPO + '@main/' + GH_FILE;
-        var PURGE_URL = 'https://purge.jsdelivr.net/gh/' + GH_OWNER + '/' + GH_REPO + '@main/' + GH_FILE;
-        var MAX_MSGS = 200;
-        var lastMessages = [];
-        var isPublishing = false;
-
-        // ===== 管理员密码 =====
-        var ADMIN_PASSWORD = 'hmj1314520';
-        var isAdmin = localStorage.getItem('msgboard_admin') === '1';
-
-        function escapeHtml(text) {
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatTime(ts) {
-            var d = new Date(ts);
-            var y = d.getFullYear();
-            var mo = String(d.getMonth()+1).padStart(2,'0');
-            var da = String(d.getDate()).padStart(2,'0');
-            var h = String(d.getHours()).padStart(2,'0');
-            var m = String(d.getMinutes()).padStart(2,'0');
-            return y + '-' + mo + '-' + da + ' ' + h + ':' + m;
-        }
-
-        function decodeContent(b64) {
-            try { return decodeURIComponent(escape(atob(b64.replace(/\n/g, '')))); }
-            catch(e) { return null; }
-        }
-
-        function showToast(msg) {
-            var toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 24px;border-radius:20px;font-size:0.9rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            requestAnimationFrame(function() { toast.style.opacity = '1'; });
-            setTimeout(function() {
-                toast.style.opacity = '0';
-                setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
-            }, 2000);
-        }
-
-        function fetchWithTimeout(url, options, timeout) {
-            timeout = timeout || 12000;
-            return Promise.race([
-                fetch(url, options),
-                new Promise(function(_, reject) {
-                    setTimeout(function() { reject(new Error('timeout')); }, timeout);
-                })
-            ]);
-        }
-
-        function updateAdminUI() {
-            var badge = document.getElementById('adminBadge');
-            var adminBar = document.getElementById('adminBar');
-            if (isAdmin) {
-                badge.style.display = 'inline-block';
-                adminBar.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-                adminBar.style.display = 'none';
-            }
-        }
-
-        function renderMessages(msgs) {
-            var boardList = document.getElementById('boardList');
-            var msgCount = document.getElementById('msgCount');
-
-            if (!msgs || msgs.length === 0) {
-                boardList.innerHTML = '<div class="message-empty">还没有留言，快来抢沙发吧！🛋</div>';
-                msgCount.textContent = '';
-                return;
-            }
-
-            msgCount.textContent = '共 ' + msgs.length + ' 条留言';
-
-            var html = msgs.map(function(m, idx) {
-                var realIdx = msgs.length - 1 - idx;
-                var adminActions = '';
-                if (isAdmin) {
-                    adminActions = '<div class="msg-admin-actions">' +
-                        '<button class="msg-delete-btn" onclick="deleteMessage(' + realIdx + ')">🗑 删除</button>' +
-                    '</div>';
-                }
-                return '<div class="message-item" data-idx="' + realIdx + '">' +
-                    '<div class="msg-header">' +
-                        '<span class="msg-name">' + escapeHtml(m.name) + '</span>' +
-                        '<span class="msg-time">' + formatTime(m.time) + '</span>' +
-                    '</div>' +
-                    '<div class="msg-content">' + escapeHtml(m.content) + '</div>' +
-                    adminActions +
-                '</div>';
-            }).reverse().join('');
-
-            boardList.innerHTML = html;
-        }
-
-        // ===== 读取留言 =====
-        async function fetchFromCDN() {
-            try {
-                var resp = await fetchWithTimeout(CDN_URL + '?t=' + Date.now(), {}, 8000);
-                if (!resp.ok) return null;
-                var data = await resp.json();
-                return data.messages || [];
-            } catch(e) { return null; }
-        }
-
-        async function fetchFromRaw() {
-            try {
-                var resp = await fetchWithTimeout(RAW_URL + '?t=' + Date.now(), {}, 12000);
-                if (!resp.ok) return null;
-                var data = await resp.json();
-                return data.messages || [];
-            } catch(e) { return null; }
-        }
-
-        async function fetchFromAPI() {
-            try {
-                var resp = await fetchWithTimeout(API_URL + '?t=' + Date.now(), {
-                    headers: {
-                        'Authorization': 'token ' + GH_TOKEN,
-                        'Accept': 'application/vnd.github+json'
-                    }
-                }, 12000);
-                if (!resp.ok) return null;
-                var data = await resp.json();
-                var sha = data.sha;
-                var msgs = [];
-                if (data.content) {
-                    var decoded = decodeContent(data.content);
-                    if (decoded) {
-                        try { msgs = JSON.parse(decoded).messages || []; } catch(e) {}
-                    }
-                }
-                return { sha: sha, messages: msgs };
-            } catch(e) { return null; }
-        }
-
-        async function fetchMessages() {
-            // API优先：先获取最准确的数据（含SHA），避免CDN旧缓存闪烁
-            var apiData = await fetchFromAPI();
-            if (apiData) {
-                lastSha = apiData.sha;
-                lastMessages = apiData.messages || [];
-                renderMessages(lastMessages);
-                return lastMessages;
-            }
-            
-            // API失败时才用CDN/Raw兜底
-            var cdnMsgs = await fetchFromCDN();
-            if (cdnMsgs) {
-                lastMessages = cdnMsgs;
-                renderMessages(cdnMsgs);
-                return lastMessages;
-            }
-            
-            var rawMsgs = await fetchFromRaw();
-            if (rawMsgs) {
-                lastMessages = rawMsgs;
-                renderMessages(rawMsgs);
-                return lastMessages;
-            }
-            
-            renderMessages([]);
-            return [];
-        }
-
-var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
-
-        // ===== 发布留言 =====
-        async function addMessage(name, content, btnEl) {
-            if (!content.trim()) { showToast('请输入留言内容！'); return false; }
-            if (isPublishing) { showToast('正在发布中，请稍等...'); return false; }
-            isPublishing = true;
-            if (btnEl) { btnEl.textContent = '发布中...'; btnEl.disabled = true; }
-
-            var newMsg = { name: name.trim() || '匿名访客', content: content.trim(), time: Date.now() };
-
-            try {
-                // 用本地缓存的数据 + 缓存的SHA直接提交，跳过GET请求
-                var msgs = lastMessages.slice();
-                msgs.push(newMsg);
-                if (msgs.length > MAX_MSGS) msgs = msgs.slice(msgs.length - MAX_MSGS);
-
-                // 先乐观更新UI，让用户感觉秒发
-                lastMessages = msgs;
-                renderMessages(msgs);
-
-                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
-                var putBody = { message: 'Update messages', content: contentB64 };
-                if (lastSha) putBody.sha = lastSha;
-
-                var putResp = await fetchWithTimeout(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + GH_TOKEN,
-                        'Accept': 'application/vnd.github+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(putBody)
-                }, 15000);
-
-                if (putResp && putResp.ok) {
-                    var putData = await putResp.json();
-                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
-                    try { fetch(PURGE_URL); } catch(e) {}
-                    showToast('发布成功！✅');
-                } else if (putResp && putResp.status === 409) {
-                    // SHA冲突，需要重新获取
-                    showToast('同步数据中...');
-                    var apiData = await fetchFromAPI();
-                    if (apiData) {
-                        lastSha = apiData.sha;
-                        var freshMsgs = apiData.messages;
-                        freshMsgs.push(newMsg);
-                        if (freshMsgs.length > MAX_MSGS) freshMsgs = freshMsgs.slice(freshMsgs.length - MAX_MSGS);
-                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
-                        var retryBody = { message: 'Update messages', content: retryB64, sha: lastSha };
-                        var retryResp = await fetchWithTimeout(API_URL, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': 'token ' + GH_TOKEN,
-                                'Accept': 'application/vnd.github+json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(retryBody)
-                        }, 15000);
-                        if (retryResp && retryResp.ok) {
-                            var retryData = await retryResp.json();
-                            if (retryData.content && retryData.content.sha) lastSha = retryData.content.sha;
-                            try { fetch(PURGE_URL); } catch(e) {}
-                            showToast('发布成功！✅');
-                            lastMessages = freshMsgs;
-                            renderMessages(freshMsgs);
-                        } else {
-                            showToast('发布失败，请重试 ❌');
-                        }
-                    } else {
-                        showToast('网络错误，请重试 ❌');
-                    }
-                } else {
-                    showToast('发布失败，请重试 ❌');
-                    // 回滚
-                    var fresh = await fetchFromAPI();
-                    if (fresh) { lastMessages = fresh.messages; lastSha = fresh.sha; renderMessages(fresh.messages); }
-                }
-            } catch(e) {
-                showToast('网络错误，请重试 ❌');
-                var fresh2 = await fetchFromAPI();
-                if (fresh2) { lastMessages = fresh2.messages; lastSha = fresh2.sha; renderMessages(fresh2.messages); }
-            }
-
-            isPublishing = false;
-            if (btnEl) { btnEl.textContent = '发布留言 ✈'; btnEl.disabled = false; }
-            return true;
-        }
-
-        // ===== 删除留言（管理员功能）=====
-        async function deleteMessage(msgIndex) {
-            if (!isAdmin) { showToast('无权限'); return; }
-            if (isPublishing) { showToast('操作中，请稍等...'); return; }
-            if (!confirm('确定删除这条留言吗？')) return;
-
-            isPublishing = true;
-            try {
-                // 删除前先重新获取最新数据和SHA，确保不冲突
-                var apiData = await fetchFromAPI();
-                if (!apiData) { showToast('获取数据失败，请重试 ❌'); isPublishing = false; return; }
-
-                var msgs = apiData.messages;
-                lastSha = apiData.sha;
-                lastMessages = msgs;
-                renderMessages(msgs);
-
-                if (msgIndex < 0 || msgIndex >= msgs.length) {
-                    showToast('留言不存在 ❌'); isPublishing = false; return;
-                }
-
-                msgs.splice(msgIndex, 1);
-                lastMessages = msgs;
-                renderMessages(msgs);
-
-                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
-                var putBody = { message: 'Delete a message', content: contentB64, sha: lastSha };
-
-                var putResp = await fetchWithTimeout(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + GH_TOKEN,
-                        'Accept': 'application/vnd.github+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(putBody)
-                }, 15000);
-
-                if (putResp && putResp.ok) {
-                    var putData = await putResp.json();
-                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
-                    try { fetch(PURGE_URL); } catch(e) {}
-                    showToast('删除成功！✅');
-                } else if (putResp && putResp.status === 409) {
-                    // SHA冲突，再试一次
-                    var retryData = await fetchFromAPI();
-                    if (retryData) {
-                        lastSha = retryData.sha;
-                        var freshMsgs = retryData.messages;
-                        if (msgIndex < freshMsgs.length) freshMsgs.splice(msgIndex, 1);
-                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
-                        var retryResp = await fetchWithTimeout(API_URL, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': 'token ' + GH_TOKEN,
-                                'Accept': 'application/vnd.github+json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ message: 'Delete a message', content: retryB64, sha: lastSha })
-                        }, 15000);
-                        if (retryResp && retryResp.ok) {
-                            var rData = await retryResp.json();
-                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
-                            try { fetch(PURGE_URL); } catch(e) {}
-                            showToast('删除成功！✅');
-                            lastMessages = freshMsgs;
-                            renderMessages(freshMsgs);
-                        } else {
-                            showToast('删除失败，请重试 ❌');
-                            lastMessages = retryData.messages;
-                            renderMessages(retryData.messages);
-                        }
-                    } else {
-                        showToast('网络错误 ❌');
-                    }
-                } else {
-                    showToast('删除失败，请重试 ❌');
-                    lastMessages = apiData.messages;
-                    renderMessages(apiData.messages);
-                }
-            } catch(e) {
-                showToast('网络错误 ❌');
-            }
-            isPublishing = false;
-        }
-        window.deleteMessage = deleteMessage;
-
-        // ===== 管理员登录/退出 =====
-        function adminLogin() {
-            var input = document.getElementById('adminPwdInput');
-            var pwd = input.value.trim();
-            if (!pwd) { document.getElementById('adminError').style.display = 'block'; return; }
-
-            if (pwd === ADMIN_PASSWORD) {
-                isAdmin = true;
-                localStorage.setItem('msgboard_admin', '1');
-                updateAdminUI();
-                document.getElementById('adminModal').classList.remove('show');
-                input.value = '';
-                document.getElementById('adminError').style.display = 'none';
-                showToast('管理员登录成功 ✅');
-                renderMessages(lastMessages);
-            } else {
-                document.getElementById('adminError').style.display = 'block';
-                input.value = '';
-            }
-        }
-
-        function adminLogout() {
-            isAdmin = false;
-            localStorage.removeItem('msgboard_admin');
-            updateAdminUI();
-            showToast('已退出管理员模式');
-            renderMessages(lastMessages);
-        }
-
-        document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
-        document.getElementById('adminPwdInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') adminLogin();
-        });
-        document.getElementById('adminLogoutBtn').addEventListener('click', adminLogout);
-        document.getElementById('adminCloseBtn').addEventListener('click', function() {
-            document.getElementById('adminModal').classList.remove('show');
-            document.getElementById('adminPwdInput').value = '';
-            document.getElementById('adminError').style.display = 'none';
-        });
-        // 管理员弹窗只能通过按钮关闭，点空白不关闭
-
-        // ===== 页脚连点5次激活管理员登录 =====
-        var footerClickCount = 0;
-        var footerClickTimer = null;
-        document.getElementById('footerText').addEventListener('click', function() {
-            footerClickCount++;
-            if (footerClickTimer) clearTimeout(footerClickTimer);
-            footerClickTimer = setTimeout(function() { footerClickCount = 0; }, 2000);
-            if (footerClickCount >= 5) {
-                footerClickCount = 0;
-                document.getElementById('adminModal').classList.add('show');
-                document.getElementById('adminPwdInput').focus();
-            }
-        });
-
-        // ===== 留言板提交 =====
-        document.getElementById('boardSubmit').addEventListener('click', function() {
-            var name = document.getElementById('boardName').value;
-            var msg = document.getElementById('boardMsg').value;
-            addMessage(name, msg, this).then(function(ok) {
-                if (ok) {
-                    document.getElementById('boardName').value = '';
-                    document.getElementById('boardMsg').value = '';
-                }
-            });
-        });
-
-        // 侧边浮窗开关
-        var msgSidebar = document.getElementById('msgSidebar');
-        var msgOverlay = document.getElementById('msgOverlay');
-
-        document.getElementById('msgFloatBtn').addEventListener('click', function() {
-            msgSidebar.classList.add('open');
-            msgOverlay.classList.add('show');
-        });
-        document.getElementById('msgCloseBtn').addEventListener('click', function() {
-            msgSidebar.classList.remove('open');
-            msgOverlay.classList.remove('show');
-        });
-        msgOverlay.addEventListener('click', function() {
-            msgSidebar.classList.remove('open');
-            msgOverlay.classList.remove('show');
-        });
-
-        // ===== 初始化 =====
-        updateAdminUI();
-        fetchMessages();  // fetchMessages内部已经会调fetchFromAPI获取SHA和最新数据
-        
-        // 5秒快速轮询，实时获取新留言
-        setInterval(function() {
-            if (isPublishing) return;
-            fetchFromAPI().then(function(data) {
-                if (data) {
-                    lastSha = data.sha;
-                    lastMessages = data.messages || [];
-                    renderMessages(lastMessages);
-                }
-            });
-        }, 5000);
-        
-        // 页面从后台切回前台时立即刷新
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden && !isPublishing) {
-                fetchMessages();
-            }
-        });
-        
-        // 手动刷新按钮
-        document.getElementById('manualRefreshBtn').addEventListener('click', function() {
-            if (isPublishing) { showToast('正在操作中，请稍等...'); return; }
-            this.style.opacity = '0.6';
-            var self = this;
-            fetchMessages().then(function() {
-                self.style.opacity = '1';
-                showToast('已刷新 ✅');
-            });
-        });
-    </script>
 </body>
 </html>
