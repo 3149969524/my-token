@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💬 留言板 - 我的网站</title>
+    <title>留言板 - 我的网站</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -407,6 +407,22 @@
         .admin-modal-box .admin-hint { text-align: center; color: var(--gray); font-size: 0.8rem; margin-top: 12px; }
         .admin-modal-box .admin-error { color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 8px; display: none; }
 
+        /* ===== 回到顶部按钮 ===== */
+        .back-to-top {
+            position: fixed; right: 25px; bottom: 90px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(26, 26, 46, 0.9);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.15);
+            font-size: 1.3rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 997; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transform: translateY(10px);
+        }
+        .back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .back-to-top:hover { background: var(--gradient); border-color: transparent; transform: scale(1.1); }
+
     </style>
 </head>
 <body>
@@ -414,7 +430,7 @@
     <!-- ===== 导航栏 ===== -->
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-logo">🌟 我的网站</a>
+            <a href="index.html" class="navbar-logo">我的网站</a>
             <div class="navbar-links">
                 <a href="index.html">首页</a>
                 <a href="board.html" class="active">留言板</a>
@@ -426,7 +442,7 @@
     <!-- ===== 顶部横幅 ===== -->
     <header class="banner">
         <div class="banner-content">
-            <h1>💬 留言板<span id="adminBadge" class="admin-badge" style="display:none;">管理员</span></h1>
+            <h1>留言板<span id="adminBadge" class="admin-badge" style="display:none;">管理员</span></h1>
             <p>留下你的足迹，说说你想说的</p>
             <div class="underline"></div>
         </div>
@@ -454,7 +470,7 @@
     <div class="bottom-bar">
         <div class="bottom-bar-inner">
             <!-- 非管理员状态：显示页脚文字（连点5次进管理员） -->
-            <span class="bottom-bar-text" id="footerText">✨ 留言板 · 永久在线</span>
+            <span class="bottom-bar-text" id="footerText">留言板 · 永久在线</span>
 
             <!-- 管理员批量操作栏 -->
             <div class="admin-batch-bar" id="adminBatchBar">
@@ -483,6 +499,9 @@
             <p class="admin-hint">仅管理员可删除留言</p>
         </div>
     </div>
+
+    <!-- ===== 回到顶部按钮 ===== -->
+    <button class="back-to-top" id="backToTopBtn" title="回到顶部">↑</button>
 
     <script>
         // ===== 留言系统（GitHub 存储 + CDN加速 + 管理员模式）=====
@@ -1156,6 +1175,19 @@
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 document.getElementById('boardSubmit').click();
             }
+        });
+
+        // ===== 回到顶部按钮 =====
+        var backToTopBtn = document.getElementById('backToTopBtn');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         // ===== 初始化 =====
