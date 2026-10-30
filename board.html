@@ -216,6 +216,39 @@
         }
         .msg-delete-btn:hover { background: #c0392b; transform: scale(1.05); }
 
+        /* ===== 管理员置顶按钮 ===== */
+        .msg-pin-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .msg-pin-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+        .msg-pin-btn.unpin { background: var(--gray); }
+        .msg-pin-btn.unpin:hover { background: #999; }
+
+        /* 置顶标记 */
+        .msg-pinned-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.68rem;
+            padding: 1px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+        .message-item.pinned {
+            border-left: 3px solid var(--primary);
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+        }
+
         .msg-admin-actions {
             margin-top: 10px;
             padding-top: 8px;
@@ -734,6 +767,14 @@
                            (m.content && m.content.toLowerCase().indexOf(kw) !== -1);
                 });
             }
+            // 置顶留言排到最前
+            var pinned = [];
+            var normal = [];
+            displayMsgs.forEach(function(m) {
+                if (m.pinned) pinned.push(m);
+                else normal.push(m);
+            });
+            displayMsgs = pinned.concat(normal);
 
             if (!displayMsgs || displayMsgs.length === 0) {
                 if (isAdmin && searchKeyword) {
@@ -759,10 +800,16 @@
                 var adminActions = '';
                 if (isAdmin) {
                     checkbox = '<input type="checkbox" class="msg-checkbox" data-idx="' + realIdx + '" ' + (selectedIndices.has(realIdx) ? 'checked' : '') + '>';
+                    var pinBtn = m.pinned ?
+                        '<button class="msg-pin-btn unpin" onclick="togglePinMessage(' + realIdx + ')">📌 取消置顶</button>' :
+                        '<button class="msg-pin-btn" onclick="togglePinMessage(' + realIdx + ')">📌 置顶</button>';
                     adminActions = '<div class="msg-admin-actions">' +
+                        pinBtn +
                         '<button class="msg-delete-btn" onclick="deleteMessage(' + realIdx + ')">🗑 删除</button>' +
                     '</div>';
                 }
+                var pinnedClass = m.pinned ? ' pinned' : '';
+                var pinnedBadge = m.pinned ? '<span class="msg-pinned-badge">📌 置顶</span>' : '';
                 var selClass = selectedIndices.has(realIdx) ? ' selected' : '';
                 var nameHtml = isAdmin && searchKeyword ? highlightKeyword(m.name, searchKeyword) : escapeHtml(m.name);
                 var contentHtml = isAdmin && searchKeyword ? highlightKeyword(m.content, searchKeyword) : escapeHtml(m.content);
@@ -793,12 +840,12 @@
                         '</div>';
                     }).join('') + '</div>';
                 }
-                return '<div class="message-item' + selClass + '" data-idx="' + realIdx + '">' +
+                return '<div class="message-item' + selClass + pinnedClass + '" data-idx="' + realIdx + '">' +
                     checkbox +
                     '<div class="msg-body">' +
                         '<div class="msg-header">' +
                             '<span class="msg-name">' + nameHtml + '</span>' +
-                            '<span class="msg-time">' + formatTime(m.time) + '</span>' +
+                            '<span class="msg-time">' + formatTime(m.time) + '</span>' + pinnedBadge +
                         '</div>' +
                         '<div class="msg-content">' + contentHtml + '</div>' +
                         repliesHtml +
@@ -1208,6 +1255,100 @@
             isPublishing = false;
         }
         window.deleteReply = deleteReply;
+
+        // ===== 置顶/取消置顶 =====
+        async function togglePinMessage(msgIndex) {
+            if (!isAdmin) { showToast('无权限'); return; }
+            if (isPublishing) { showToast('操作中，请稍等...'); return; }
+
+            isPublishing = true;
+            try {
+                var apiData = await fetchFromAPI();
+                if (!apiData) { showToast('获取数据失败 ❌'); isPublishing = false; return; }
+
+                var msgs = apiData.messages;
+                lastSha = apiData.sha;
+                lastMessages = msgs;
+
+                if (msgIndex < 0 || msgIndex >= msgs.length) {
+                    showToast('留言不存在 ❌'); isPublishing = false; return;
+                }
+
+                if (msgs[msgIndex].pinned) {
+                    delete msgs[msgIndex].pinned;
+                } else {
+                    msgs[msgIndex].pinned = true;
+                }
+
+                lastMessages = msgs;
+                renderMessages(msgs);
+
+                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
+                var putBody = { message: 'Toggle pin', content: contentB64, sha: lastSha };
+
+                var putResp = await fetchWithTimeout(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GH_TOKEN,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putBody)
+                }, 15000);
+
+                if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
+                    try { fetch(PURGE_URL); } catch(e) {}
+                    showToast(msgs[msgIndex].pinned ? '置顶成功！📌' : '取消置顶成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    var retryData = await fetchFromAPI();
+                    if (retryData) {
+                        lastSha = retryData.sha;
+                        var freshMsgs = retryData.messages;
+                        if (msgIndex >= 0 && msgIndex < freshMsgs.length) {
+                            if (freshMsgs[msgIndex].pinned) {
+                                delete freshMsgs[msgIndex].pinned;
+                            } else {
+                                freshMsgs[msgIndex].pinned = true;
+                            }
+                        }
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: 'Toggle pin', content: retryB64, sha: lastSha })
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var rData = await retryResp.json();
+                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast(freshMsgs[msgIndex] && freshMsgs[msgIndex].pinned ? '置顶成功！📌' : '取消置顶成功！✅');
+                            lastMessages = freshMsgs;
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('操作失败，请重试 ❌');
+                            lastMessages = retryData.messages;
+                            renderMessages(retryData.messages);
+                        }
+                    } else {
+                        showToast('网络错误 ❌');
+                    }
+                } else {
+                    showToast('操作失败，请重试 ❌');
+                    lastMessages = apiData.messages;
+                    renderMessages(apiData.messages);
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+            isPublishing = false;
+        }
+        window.togglePinMessage = togglePinMessage;
 
         // ===== 单条删除留言 =====
         async function deleteMessage(msgIndex) {
