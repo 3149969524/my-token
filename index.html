@@ -245,15 +245,7 @@
         .msg-sidebar-header { padding: 20px; background: var(--gradient); color: var(--white); display: flex; justify-content: space-between; align-items: center; }
         .msg-sidebar-header h3 { font-size: 1.2rem; }
         .msg-sidebar-close { background: none; border: none; color: var(--white); font-size: 1.5rem; cursor: pointer; }
-        .msg-sidebar-body { flex: 1; overflow-y: auto; padding: 20px; }
-        .msg-sidebar-input { padding: 15px 20px; border-top: 1px solid #eee; }
-        .msg-sidebar-input input, .msg-sidebar-input textarea {
-            width: 100%; padding: 10px 14px;
-            border: 2px solid #e0e0e0; border-radius: 8px;
-            font-size: 0.9rem; font-family: inherit; margin-bottom: 8px;
-        }
-        .msg-sidebar-input input:focus, .msg-sidebar-input textarea:focus { outline: none; border-color: var(--primary); }
-        .msg-sidebar-input textarea { resize: none; min-height: 60px; }
+        .msg-sidebar-body { flex: 1; overflow-y: auto; }
 
         .msg-overlay {
             position: fixed; top: 0; left: 0;
@@ -321,21 +313,27 @@
         </div>
     </div>
 
-    <!-- ===== 侧边留言浮窗 ===== -->
-    <button class="msg-float-btn" id="msgFloatBtn" title="快速留言">💬</button>
+    <!-- ===== 侧边介绍浮窗 ===== -->
+    <button class="msg-float-btn" id="msgFloatBtn" title="网页介绍">ℹ️</button>
     <div class="msg-overlay" id="msgOverlay"></div>
     <div class="msg-sidebar" id="msgSidebar">
         <div class="msg-sidebar-header">
-            <h3>💬 快速留言</h3>
+            <h3>📋 网页介绍</h3>
             <button class="msg-sidebar-close" id="msgCloseBtn">✕</button>
         </div>
-        <div class="msg-sidebar-body" id="sidebarList">
-            <div class="message-empty">留言加载中... ⏳</div>
-        </div>
-        <div class="msg-sidebar-input">
-            <input type="text" id="sidebarName" placeholder="昵称（可选）" maxlength="20">
-            <textarea id="sidebarMsg" placeholder="写下你的留言..." maxlength="500"></textarea>
-            <button class="message-submit-btn" id="sidebarSubmit" style="width:100%;">发布留言 ✈</button>
+        <div class="msg-sidebar-body" id="sidebarList" style="padding:30px 24px; line-height:1.8;">
+            <div style="text-align:center; margin-bottom:24px;">
+                <div style="font-size:3rem; margin-bottom:12px;">💬</div>
+                <h2 style="color:var(--dark); font-size:1.4rem; margin:0;">留言板</h2>
+            </div>
+            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">本页面你可以留言给任何人。</p>
+            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">无论是想对朋友说的话、对某人的感谢、或者是一段匿名告白，都可以在这里留下你的足迹。</p>
+            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">📝 在下方输入区域填写昵称和留言内容，点击发布即可。</p>
+            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🔄 页面每 <b>5秒</b> 自动刷新一次，你发送的留言会实时显示给所有人。</p>
+            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🟢 绿色圆点闪烁表示实时更新中。</p>
+            <div style="margin-top:24px; padding-top:20px; border-top:1px solid #eee; text-align:center;">
+                <p style="color:var(--gray); font-size:0.8rem;">✨ 留言板 · 永久在线</p>
+            </div>
         </div>
     </div>
 
@@ -414,12 +412,10 @@
 
         function renderMessages(msgs) {
             var boardList = document.getElementById('boardList');
-            var sidebarList = document.getElementById('sidebarList');
             var msgCount = document.getElementById('msgCount');
 
             if (!msgs || msgs.length === 0) {
                 boardList.innerHTML = '<div class="message-empty">还没有留言，快来抢沙发吧！🛋</div>';
-                sidebarList.innerHTML = '<div class="message-empty">还没有留言，快来抢沙发吧！🛋</div>';
                 msgCount.textContent = '';
                 return;
             }
@@ -445,7 +441,6 @@
             }).reverse().join('');
 
             boardList.innerHTML = html;
-            sidebarList.innerHTML = html;
         }
 
         // ===== 读取留言 =====
@@ -758,17 +753,6 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
                 if (ok) {
                     document.getElementById('boardName').value = '';
                     document.getElementById('boardMsg').value = '';
-                }
-            });
-        });
-
-        document.getElementById('sidebarSubmit').addEventListener('click', function() {
-            var name = document.getElementById('sidebarName').value;
-            var msg = document.getElementById('sidebarMsg').value;
-            addMessage(name, msg, this).then(function(ok) {
-                if (ok) {
-                    document.getElementById('sidebarName').value = '';
-                    document.getElementById('sidebarMsg').value = '';
                 }
             });
         });
