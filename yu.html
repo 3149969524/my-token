@@ -332,7 +332,7 @@
             width: 100%;
             max-height: 65vh;
             overflow-y: auto;
-            padding: 10px 5px;
+            padding: 10px 5px 80px;
         }
         .capsule-list.show { display: flex; }
         .capsule-list::-webkit-scrollbar { width: 2px; }
@@ -594,6 +594,46 @@
             pointer-events: none;
         }
         .capsule-toast.show { opacity: 1; }
+
+        /* 固定底部写胶囊按钮 */
+        .capsule-write-fab {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 14px 20px;
+            background: linear-gradient(180deg, rgba(7,11,30,0.85) 0%, rgba(7,11,30,0.98) 60%, rgba(7,11,30,1) 100%);
+            border-top: 1px solid rgba(240,235,224,0.08);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10003;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .capsule-write-fab.show { display: flex; }
+        .capsule-write-fab-btn {
+            width: 100%;
+            max-width: 440px;
+            padding: 14px 20px;
+            background: rgba(245,230,200,0.06);
+            border: 1px solid rgba(245,230,200,0.25);
+            border-radius: 50px;
+            color: rgba(245,230,200,0.8);
+            font-size: 0.95rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+            letter-spacing: 0.1em;
+        }
+        .capsule-write-fab-btn:hover {
+            background: rgba(245,230,200,0.1);
+            border-color: rgba(245,230,200,0.4);
+            color: rgba(245,230,200,1);
+        }
     </style>
 </head>
 <body>
@@ -682,6 +722,11 @@
 
     <!-- Toast 提示 -->
     <div class="capsule-toast" id="capsuleToast"></div>
+
+    <!-- 固定底部写胶囊按钮 -->
+    <div class="capsule-write-fab" id="capsuleWriteFab">
+        <div class="capsule-write-fab-btn" id="capsuleWriteFabBtn">✍ 写一颗时间胶囊</div>
+    </div>
 
     <script>
         // ===== 暗号 =====
@@ -914,6 +959,7 @@
             if (e.target.closest('.capsule-modal')) return;
             if (e.target.closest('.capsule-btn')) return;
             if (e.target.closest('.capsule-toast')) return;
+            if (e.target.closest('.capsule-write-fab')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
@@ -1105,6 +1151,8 @@
         var searchName = document.getElementById('searchName');
         var capsuleSearchCount = document.getElementById('capsuleSearchCount');
         var currentFilter = 'all';
+        var capsuleWriteFab = document.getElementById('capsuleWriteFab');
+        var capsuleWriteFabBtn = document.getElementById('capsuleWriteFabBtn');
 
         async function openCapsuleList() {
             capsuleModal.style.display = 'flex';
@@ -1181,6 +1229,7 @@
             capsuleDetail.classList.remove('show');
             capWrite.classList.remove('show');
             capsuleBack.style.display = 'none';
+            capsuleWriteFab.classList.add('show');
 
             var filtered = getFilteredCapsules();
             capsuleSearchCount.textContent = '共 ' + filtered.length + ' 颗胶囊';
@@ -1228,16 +1277,6 @@
 
                 capsuleList.appendChild(card);
             });
-
-            // 「写一颗」按钮
-            var writeBtn = document.createElement('div');
-            writeBtn.className = 'capsule-write-new-btn';
-            writeBtn.textContent = '✍ 写一颗时间胶囊';
-            writeBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                showCapsuleWrite();
-            });
-            capsuleList.appendChild(writeBtn);
         }
 
         // ===== 打开单颗胶囊详情 =====
@@ -1249,6 +1288,7 @@
             capsuleSearch.classList.remove('show');
             capsuleDetail.classList.add('show');
             capsuleBack.style.display = 'block';
+            capsuleWriteFab.classList.remove('show');
 
             capsuleDate.textContent = '开启时间：' + formatCapDate(cap.date);
             capsuleContent.style.display = 'none';
@@ -1341,6 +1381,7 @@
             capsuleDetail.classList.remove('show');
             capWrite.classList.add('show');
             capsuleBack.style.display = 'block';
+            capsuleWriteFab.classList.remove('show');
             writeName.value = '';
             writeDate.value = '';
             writeContent.value = '';
@@ -1444,6 +1485,7 @@
                 capsuleDetail.classList.remove('show');
                 capWrite.classList.remove('show');
                 capsuleBack.style.display = 'none';
+                capsuleWriteFab.classList.remove('show');
                 currentCapsule = -1;
                 // 重置搜索
                 searchName.value = '';
@@ -1475,6 +1517,18 @@
 
         capsuleModal.addEventListener('click', function(e) {
             if (e.target === capsuleModal) closeCapsule();
+        });
+
+        // 底部写胶囊按钮
+        capsuleWriteFabBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showCapsuleWrite();
+        });
+        capsuleWriteFabBtn.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+        }, { passive: true });
+        capsuleWriteFab.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
     </script>
 
