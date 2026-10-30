@@ -267,6 +267,60 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* 胶囊密码门 */
+        .capsule-lock {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .capsule-input {
+            width: 220px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #f0ebe0;
+            font-size: 0.95rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            letter-spacing: 0.1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .capsule-input:focus {
+            border-color: rgba(240, 235, 224, 0.35);
+        }
+        .capsule-input::placeholder {
+            color: rgba(240, 235, 224, 0.18);
+            font-weight: 300;
+        }
+        .capsule-lock-btn {
+            margin-top: 18px;
+            padding: 8px 36px;
+            background: transparent;
+            border: 1px solid rgba(240, 235, 224, 0.2);
+            border-radius: 50px;
+            color: rgba(240, 235, 224, 0.6);
+            font-size: 0.85rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .capsule-lock-btn:hover {
+            background: rgba(240, 235, 224, 0.06);
+            border-color: rgba(240, 235, 224, 0.4);
+            color: #f0ebe0;
+        }
+        .capsule-lock-hint {
+            margin-top: 14px;
+            font-size: 0.68rem;
+            color: rgba(240, 235, 224, 0.15);
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.1em;
+        }
     </style>
 </head>
 <body>
@@ -310,6 +364,12 @@
         <div class="capsule-date" id="capsuleDate"></div>
         <div class="capsule-countdown" id="capsuleCountdown"></div>
         <div class="capsule-content" id="capsuleContent" style="display:none;"></div>
+        <!-- 胶囊密码门 -->
+        <div class="capsule-lock" id="capsuleLock" style="display:none;">
+            <input type="password" class="capsule-input" id="capsuleInput" placeholder="暗号" autocomplete="off">
+            <button class="capsule-lock-btn" id="capsuleLockBtn">解锁</button>
+            <div class="capsule-lock-hint">里屋的人才能看</div>
+        </div>
     </div>
 
     <script>
@@ -555,6 +615,9 @@
         var capsuleCountdown = document.getElementById('capsuleCountdown');
         var capsuleContent = document.getElementById('capsuleContent');
         var capsuleTitle = document.getElementById('capsuleTitle');
+        var capsuleLock = document.getElementById('capsuleLock');
+        var capsuleInput = document.getElementById('capsuleInput');
+        var capsuleLockBtn = document.getElementById('capsuleLockBtn');
 
         // base64 → Uint8Array
         function b64ToBytes(b64) {
@@ -591,6 +654,10 @@
             });
 
             capsuleDate.textContent = '开启日期：' + cap.date;
+            capsuleContent.style.display = 'none';
+            capsuleContent.textContent = '';
+            capsuleLock.style.display = 'none';
+            capsuleInput.value = '';
 
             if (today < openDate) {
                 // 不到日期：只显示倒计时，绝不解密
@@ -598,24 +665,69 @@
                 var days = Math.ceil(diff / 86400000);
                 capsuleTitle.textContent = '还没到时候';
                 capsuleCountdown.textContent = '还有 ' + days + ' 天';
-                capsuleContent.style.display = 'none';
             } else {
-                // 到日期了：解密并展示
-                capsuleTitle.textContent = '时间到了';
-                capsuleCountdown.textContent = '';
-                capsuleContent.style.display = 'none';
-                capsuleContent.textContent = '';
-
-                decryptCapsule(cap.data, CAPSULE_KEY).then(function(text) {
-                    capsuleContent.textContent = text;
-                    capsuleContent.classList.add('capsule-fadein');
-                    capsuleContent.style.display = 'block';
-                }).catch(function() {
-                    capsuleTitle.textContent = '信封坏了';
-                    capsuleCountdown.textContent = '解不开 也许是屿忘了塞什么进去';
-                });
+                // 到日期了
+                if (isInRoom) {
+                    // 已在里屋：直接解密
+                    doDecryptCapsule();
+                } else {
+                    // 外屋：先输暗号
+                    capsuleTitle.textContent = '时间到了';
+                    capsuleCountdown.textContent = '但得先回里屋';
+                    capsuleLock.style.display = 'flex';
+                    setTimeout(function() {
+                        capsuleInput.focus();
+                    }, 600);
+                }
             }
         }
+
+        function doDecryptCapsule() {
+            var cap = capsules[0];
+            capsuleTitle.textContent = '时间到了';
+            capsuleCountdown.textContent = '';
+            capsuleLock.style.display = 'none';
+            capsuleContent.style.display = 'none';
+            capsuleContent.textContent = '';
+
+            decryptCapsule(cap.data, CAPSULE_KEY).then(function(text) {
+                capsuleContent.textContent = text;
+                capsuleContent.classList.add('capsule-fadein');
+                capsuleContent.style.display = 'block';
+            }).catch(function() {
+                capsuleTitle.textContent = '信封坏了';
+                capsuleCountdown.textContent = '解不开 也许是屿忘了塞什么进去';
+            });
+        }
+
+        function tryCapsuleUnlock() {
+            if (capsuleInput.value === PASSWORD) {
+                isInRoom = true;
+                roomLabel.classList.add('show');
+                yuSign.style.transition = 'opacity 0.8s ease';
+                yuSign.style.opacity = '0.15';
+                doDecryptCapsule();
+            } else {
+                capsuleInput.classList.add('shake');
+                capsuleInput.value = '';
+                setTimeout(function() {
+                    capsuleInput.classList.remove('shake');
+                }, 400);
+            }
+        }
+
+        capsuleLockBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tryCapsuleUnlock();
+        });
+
+        capsuleInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                tryCapsuleUnlock();
+            }
+            e.stopPropagation();
+        });
 
         function closeCapsule() {
             capsuleModal.classList.add('hide');
