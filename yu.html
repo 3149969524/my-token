@@ -554,8 +554,8 @@
         <!-- 写胶囊表单 -->
         <div class="capsule-write" id="capsuleWrite">
             <div class="capsule-title" style="margin-bottom:4px;">写一颗时间胶囊</div>
-            <label>开启日期</label>
-            <input type="date" id="writeDate" min="2026-10-31">
+            <label>开启时间</label>
+            <input type="datetime-local" id="writeDate" min="2026-10-31T00:00">
             <label>写点什么（给未来的信）</label>
             <textarea id="writeContent" placeholder="想对那时候的自己或某个人说的话..." maxlength="2000"></textarea>
             <label>暗号（可选 · 留空则到期人人可看）</label>
@@ -944,20 +944,41 @@
             return new TextDecoder().decode(decrypted);
         }
 
-        // 日期辅助
+        // 日期/时间辅助
+        function getNowStr() {
+            var now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        }
         function getTodayStr() {
             var now = new Date();
             return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
         }
-        function isCapsuleOpen(cap) {
-            var openDate = new Date(cap.date + 'T00:00:00');
-            var today = new Date(getTodayStr() + 'T00:00:00');
-            return today >= openDate;
+        // 兼容旧格式：纯日期 '2026-12-06' → 补 'T00:00'
+        function normalizeCapDate(str) {
+            if (str && str.length === 10) return str + 'T00:00';
+            return str || getTodayStr() + 'T00:00';
         }
-        function getDaysLeft(cap) {
-            var openDate = new Date(cap.date + 'T00:00:00');
-            var today = new Date(getTodayStr() + 'T00:00:00');
-            return Math.ceil((openDate - today) / 86400000);
+        // 格式化显示：'2026-12-06T03:14' → '2026-12-06 03:14'
+        function formatCapDate(str) {
+            var s = normalizeCapDate(str);
+            return s.replace('T', ' ');
+        }
+        function isCapsuleOpen(cap) {
+            var openDate = new Date(normalizeCapDate(cap.date));
+            var now = new Date();
+            return now >= openDate;
+        }
+        function getCountdown(cap) {
+            var openDate = new Date(normalizeCapDate(cap.date));
+            var now = new Date();
+            var diff = openDate - now;
+            if (diff <= 0) return '';
+            var days = Math.floor(diff / 86400000);
+            var hours = Math.floor((diff % 86400000) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            if (days > 0) return days + '天' + hours + '小时';
+            if (hours > 0) return hours + '小时' + mins + '分';
+            return mins + '分钟';
         }
 
         // ===== 打开胶囊弹窗 → 列表 =====
@@ -996,14 +1017,14 @@
                 title.textContent = '第 ' + (i+1) + ' 颗';
                 var date = document.createElement('div');
                 date.className = 'capsule-card-date';
-                date.textContent = '开启：' + cap.date;
+                date.textContent = '开启：' + formatCapDate(cap.date);
                 var status = document.createElement('div');
                 status.className = 'capsule-card-status';
                 if (isCapsuleOpen(cap)) {
                     status.textContent = '已到期 · 可查看';
                     status.style.color = 'rgba(245,230,200,0.4)';
                 } else {
-                    status.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
+                    status.textContent = '还有 ' + getCountdown(cap);
                 }
 
                 card.appendChild(title);
@@ -1046,7 +1067,7 @@
             capsuleDetail.classList.add('show');
             capsuleBack.style.display = 'block';
 
-            capsuleDate.textContent = '开启日期：' + cap.date;
+            capsuleDate.textContent = '开启时间：' + formatCapDate(cap.date);
             capsuleContent.style.display = 'none';
             capsuleContent.textContent = '';
             capsuleLock.style.display = 'none';
@@ -1054,7 +1075,7 @@
 
             if (!isCapsuleOpen(cap)) {
                 capsuleTitle.textContent = '还没到时候';
-                capsuleCountdown.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
+                capsuleCountdown.textContent = '还有 ' + getCountdown(cap);
             } else {
                 if (!cap.locked) {
                     // 无密码：直接解密
@@ -1149,9 +1170,9 @@
             var content = writeContent.value.trim();
             var pwd = writePassword.value.trim();
 
-            if (!date) { showCapToast('请选开启日期'); return; }
+            if (!date) { showCapToast('请选开启时间'); return; }
             if (!content) { showCapToast('内容不能为空'); return; }
-            if (date < getTodayStr()) { showCapToast('开启日期不能是过去'); return; }
+            if (date < getNowStr()) { showCapToast('开启时间不能是过去'); return; }
 
             writeSubmit.disabled = true;
             writeSubmit.textContent = '封存中...';
