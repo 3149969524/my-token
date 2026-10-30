@@ -479,34 +479,32 @@
         }
 
         async function fetchMessages() {
-            // CDN和Raw同时请求，谁先回来先显示
-            var cdnPromise = fetchFromCDN();
-            var rawPromise = fetchFromRaw();
-            
-            // 先等CDN（通常更快），超时就直接等Raw
-            var cdnMsgs = await cdnPromise;
-            if (cdnMsgs && cdnMsgs.length > 0) {
-                lastMessages = cdnMsgs;
-                renderMessages(cdnMsgs);
-            }
-            
-            // 再等Raw获取最新数据
-            var rawMsgs = await rawPromise;
-            if (rawMsgs && rawMsgs.length > 0) {
-                lastMessages = rawMsgs;
-                renderMessages(rawMsgs);
-            }
-            
-            // 最后用API获取最准确的数据（含SHA），无论是否为空都覆盖
+            // API优先：先获取最准确的数据（含SHA），避免CDN旧缓存闪烁
             var apiData = await fetchFromAPI();
             if (apiData) {
                 lastSha = apiData.sha;
                 lastMessages = apiData.messages || [];
                 renderMessages(lastMessages);
-            } else if (!cdnMsgs && !rawMsgs) {
-                renderMessages([]);
+                return lastMessages;
             }
-            return lastMessages;
+            
+            // API失败时才用CDN/Raw兜底
+            var cdnMsgs = await fetchFromCDN();
+            if (cdnMsgs) {
+                lastMessages = cdnMsgs;
+                renderMessages(cdnMsgs);
+                return lastMessages;
+            }
+            
+            var rawMsgs = await fetchFromRaw();
+            if (rawMsgs) {
+                lastMessages = rawMsgs;
+                renderMessages(rawMsgs);
+                return lastMessages;
+            }
+            
+            renderMessages([]);
+            return [];
         }
 
 var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
