@@ -24,6 +24,87 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* ===== 密码锁屏 ===== */
+        .lock-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        .lock-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .lock-title {
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 300;
+            color: rgba(240, 235, 224, 0.85);
+            letter-spacing: 0.3em;
+            margin-bottom: 36px;
+            text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
+        }
+        .lock-input {
+            width: 240px;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #f0ebe0;
+            font-size: 1rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            letter-spacing: 0.15em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .lock-input:focus {
+            border-color: rgba(240, 235, 224, 0.4);
+        }
+        .lock-input::placeholder {
+            color: rgba(240, 235, 224, 0.25);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .lock-btn {
+            margin-top: 20px;
+            padding: 10px 44px;
+            background: transparent;
+            border: 1px solid rgba(240, 235, 224, 0.25);
+            border-radius: 50px;
+            color: rgba(240, 235, 224, 0.7);
+            font-size: 0.9rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .lock-btn:hover {
+            background: rgba(240, 235, 224, 0.08);
+            border-color: rgba(240, 235, 224, 0.45);
+            color: #f0ebe0;
+        }
+        .lock-hint {
+            margin-top: 16px;
+            font-size: 0.72rem;
+            color: rgba(240, 235, 224, 0.2);
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.15em;
+        }
+        .lock-shake {
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
         .sentence {
             font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             font-weight: 300;
@@ -61,11 +142,59 @@
 </head>
 <body>
 
+    <!-- ===== 密码锁屏 ===== -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-title">屿语</div>
+        <input type="password" class="lock-input" id="lockInput" placeholder="请输入密码" autocomplete="off">
+        <button class="lock-btn" id="lockBtn">进入</button>
+        <div class="lock-hint">屿只对有密码的人说话</div>
+    </div>
+
     <div class="sentence" id="sentence"></div>
 
     <div class="sign">屿语</div>
 
     <script>
+        // ===== 密码验证 =====
+        var PASSWORD = 'hmj1314520';
+        var lockScreen = document.getElementById('lockScreen');
+        var lockInput = document.getElementById('lockInput');
+        var lockBtn = document.getElementById('lockBtn');
+
+        function tryUnlock() {
+            if (lockInput.value === PASSWORD) {
+                lockScreen.classList.add('hide');
+                setTimeout(function() {
+                    lockScreen.style.display = 'none';
+                    sessionStorage.setItem('yu_unlocked', '1');
+                }, 800);
+            } else {
+                lockInput.classList.add('lock-shake');
+                lockInput.value = '';
+                setTimeout(function() {
+                    lockInput.classList.remove('lock-shake');
+                }, 400);
+            }
+        }
+
+        lockBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tryUnlock();
+        });
+
+        lockInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                tryUnlock();
+            }
+            e.stopPropagation();
+        });
+
+        // 已解锁则跳过锁屏（同一会话内）
+        if (sessionStorage.getItem('yu_unlocked') === '1') {
+            lockScreen.style.display = 'none';
+        }
+
         // ===== 句子列表 =====
         var sentences = [
             // 催睡的
