@@ -648,6 +648,13 @@
         // ===== 初始显示 =====
         showSentence();
 
+        // ===== 从 #capsule 链接进入时自动打开胶囊 =====
+        if (location.hash === '#capsule') {
+            setTimeout(function() {
+                openCapsuleList();
+            }, 1000);
+        }
+
         // ===== 点击换句（排除屿语和里屋门）=====
         document.addEventListener('click', function(e) {
             if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
