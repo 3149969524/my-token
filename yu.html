@@ -250,12 +250,16 @@
 
         // 点击换一句
         document.addEventListener('click', function(e) {
+            // 锁屏显示时不触发换句
+            if (lockScreen.style.display !== 'none' && !lockScreen.classList.contains('hide')) return;
             if (e.target.classList.contains('sign')) return;
             showSentence();
         });
 
         // 防止双击放大
         document.addEventListener('touchend', function(e) {
+            // 锁屏显示时不阻止默认行为，让输入框正常获得焦点
+            if (lockScreen.style.display !== 'none' && !lockScreen.classList.contains('hide')) return;
             if (e.target.classList.contains('sign')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
