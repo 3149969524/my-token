@@ -28,6 +28,7 @@
             color: var(--dark);
             background: var(--light);
             min-height: 100vh;
+            padding-bottom: 80px;
         }
 
         /* ===== 导航栏 ===== */
@@ -170,9 +171,25 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             transition: all 0.3s;
             position: relative;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
 
         .message-item:hover { transform: translateX(4px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+        .message-item.selected { border-left-color: var(--danger); background: #fff5f5; }
+
+        /* 管理员勾选框 */
+        .msg-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: var(--danger);
+        }
+
+        .msg-body { flex: 1; min-width: 0; }
 
         .message-item .msg-header {
             display: flex;
@@ -185,7 +202,7 @@
         .message-item .msg-time { color: var(--gray); font-size: 0.8rem; }
         .message-item .msg-content { color: #444; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
 
-        /* ===== 管理员删除按钮 ===== */
+        /* ===== 管理员单条删除按钮 ===== */
         .msg-delete-btn {
             background: var(--danger);
             color: #fff;
@@ -215,9 +232,96 @@
 
         .message-count { text-align: center; color: var(--gray); font-size: 0.85rem; margin-bottom: 16px; }
 
-        /* ===== 页脚 ===== */
-        .footer { text-align: center; color: var(--gray); padding: 30px 20px; font-size: 0.85rem; }
-        .footer p { user-select: none; -webkit-user-select: none; cursor: default; }
+        /* ===== 固定底部栏 ===== */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%;
+            z-index: 999;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 20px;
+        }
+        .bottom-bar-inner {
+            max-width: 750px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .bottom-bar-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.82rem;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+        }
+
+        /* 管理员退出按钮（底部栏内） */
+        .admin-logout-btn {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            white-space: nowrap;
+            display: none;
+        }
+
+        /* 管理员批量操作栏 */
+        .admin-batch-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .admin-batch-bar.show { display: flex; }
+
+        .batch-select-all {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.82rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .batch-select-all input { width: 16px; height: 16px; accent-color: var(--danger); cursor: pointer; }
+
+        .batch-count {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+        }
+
+        .batch-delete-btn {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .batch-delete-btn:hover { background: #c0392b; }
+        .batch-delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .batch-cancel-btn {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+        .batch-cancel-btn:hover { background: rgba(255,255,255,0.25); }
 
         /* ===== 管理员登录弹窗 ===== */
         .admin-modal {
@@ -261,7 +365,7 @@
 
         /* ===== 侧边留言浮窗 ===== */
         .msg-float-btn {
-            position: fixed; right: 25px; bottom: 25px;
+            position: fixed; right: 25px; bottom: 90px;
             width: 50px; height: 50px; border-radius: 50%;
             background: var(--gradient); color: var(--white);
             border: none; font-size: 1.4rem; cursor: pointer;
@@ -297,6 +401,7 @@
         @media (max-width: 768px) {
             .banner h1 { font-size: 1.8rem; }
             .msg-sidebar { width: 100vw; right: -100vw; }
+            .bottom-bar-text { font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -323,11 +428,6 @@
         </div>
     </header>
 
-    <!-- ===== 管理员操作栏（仅管理员可见）===== -->
-    <div id="adminBar" style="display:none; background:#fff; border-bottom:1px solid #eee; padding:10px 20px; text-align:center;">
-        <button id="adminLogoutBtn" style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-size:0.85rem;">退出管理员模式</button>
-    </div>
-
     <!-- ===== 留言板主体 ===== -->
     <main class="board-container">
         <div class="message-input-area">
@@ -346,10 +446,27 @@
         </div>
     </main>
 
-    <!-- ===== 页脚（连点5次激活管理员登录）===== -->
-    <footer class="footer">
-        <p id="footerText">✨ 留言板 · 永久在线</p>
-    </footer>
+    <!-- ===== 固定底部栏（始终在屏幕底部）===== -->
+    <div class="bottom-bar">
+        <div class="bottom-bar-inner">
+            <!-- 非管理员状态：显示页脚文字（连点5次进管理员） -->
+            <span class="bottom-bar-text" id="footerText">✨ 留言板 · 永久在线</span>
+
+            <!-- 管理员批量操作栏 -->
+            <div class="admin-batch-bar" id="adminBatchBar">
+                <label class="batch-select-all">
+                    <input type="checkbox" id="selectAllCheckbox">
+                    <span>全选</span>
+                </label>
+                <span class="batch-count" id="batchCount">已选 0 条</span>
+                <button class="batch-delete-btn" id="batchDeleteBtn" disabled>🗑 批量删除</button>
+                <button class="batch-cancel-btn" id="batchCancelBtn">取消</button>
+            </div>
+
+            <!-- 管理员退出按钮 -->
+            <button class="admin-logout-btn" id="adminLogoutBtn">退出管理员</button>
+        </div>
+    </div>
 
     <!-- ===== 管理员登录弹窗 ===== -->
     <div class="admin-modal" id="adminModal">
@@ -400,6 +517,7 @@
         var MAX_MSGS = 200;
         var lastMessages = [];
         var isPublishing = false;
+        var selectedIndices = new Set();
 
         // ===== 管理员密码 =====
         var ADMIN_PASSWORD = 'hmj1314520';
@@ -450,14 +568,47 @@
 
         function updateAdminUI() {
             var badge = document.getElementById('adminBadge');
-            var adminBar = document.getElementById('adminBar');
+            var logoutBtn = document.getElementById('adminLogoutBtn');
+            var batchBar = document.getElementById('adminBatchBar');
+            var footerText = document.getElementById('footerText');
             if (isAdmin) {
                 badge.style.display = 'inline-block';
-                adminBar.style.display = 'block';
+                logoutBtn.style.display = 'inline-block';
+                batchBar.classList.add('show');
+                footerText.style.display = 'none';
             } else {
                 badge.style.display = 'none';
-                adminBar.style.display = 'none';
+                logoutBtn.style.display = 'none';
+                batchBar.classList.remove('show');
+                footerText.style.display = 'block';
+                selectedIndices.clear();
             }
+            updateBatchUI();
+        }
+
+        function updateBatchUI() {
+            var countEl = document.getElementById('batchCount');
+            var deleteBtn = document.getElementById('batchDeleteBtn');
+            var selectAllCb = document.getElementById('selectAllCheckbox');
+            countEl.textContent = '已选 ' + selectedIndices.size + ' 条';
+            deleteBtn.disabled = selectedIndices.size === 0;
+            // 更新全选状态
+            var total = lastMessages.length;
+            selectAllCb.checked = total > 0 && selectedIndices.size === total;
+            // 更新每条留言的选中样式
+            var items = document.querySelectorAll('.message-item');
+            items.forEach(function(item) {
+                var idx = parseInt(item.getAttribute('data-idx'));
+                var cb = item.querySelector('.msg-checkbox');
+                if (cb) {
+                    cb.checked = selectedIndices.has(idx);
+                    if (selectedIndices.has(idx)) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                }
+            });
         }
 
         function renderMessages(msgs) {
@@ -467,6 +618,7 @@
             if (!msgs || msgs.length === 0) {
                 boardList.innerHTML = '<div class="message-empty">还没有留言，快来抢沙发吧！🛋</div>';
                 msgCount.textContent = '';
+                updateBatchUI();
                 return;
             }
 
@@ -474,23 +626,47 @@
 
             var html = msgs.map(function(m, idx) {
                 var realIdx = msgs.length - 1 - idx;
+                var checkbox = '';
                 var adminActions = '';
                 if (isAdmin) {
+                    checkbox = '<input type="checkbox" class="msg-checkbox" data-idx="' + realIdx + '" ' + (selectedIndices.has(realIdx) ? 'checked' : '') + '>';
                     adminActions = '<div class="msg-admin-actions">' +
                         '<button class="msg-delete-btn" onclick="deleteMessage(' + realIdx + ')">🗑 删除</button>' +
                     '</div>';
                 }
-                return '<div class="message-item" data-idx="' + realIdx + '">' +
-                    '<div class="msg-header">' +
-                        '<span class="msg-name">' + escapeHtml(m.name) + '</span>' +
-                        '<span class="msg-time">' + formatTime(m.time) + '</span>' +
+                var selClass = selectedIndices.has(realIdx) ? ' selected' : '';
+                return '<div class="message-item' + selClass + '" data-idx="' + realIdx + '">' +
+                    checkbox +
+                    '<div class="msg-body">' +
+                        '<div class="msg-header">' +
+                            '<span class="msg-name">' + escapeHtml(m.name) + '</span>' +
+                            '<span class="msg-time">' + formatTime(m.time) + '</span>' +
+                        '</div>' +
+                        '<div class="msg-content">' + escapeHtml(m.content) + '</div>' +
+                        adminActions +
                     '</div>' +
-                    '<div class="msg-content">' + escapeHtml(m.content) + '</div>' +
-                    adminActions +
                 '</div>';
             }).reverse().join('');
 
             boardList.innerHTML = html;
+
+            // 给勾选框绑定事件
+            if (isAdmin) {
+                var checkboxes = document.querySelectorAll('.msg-checkbox');
+                checkboxes.forEach(function(cb) {
+                    cb.addEventListener('change', function() {
+                        var idx = parseInt(this.getAttribute('data-idx'));
+                        if (this.checked) {
+                            selectedIndices.add(idx);
+                        } else {
+                            selectedIndices.delete(idx);
+                        }
+                        updateBatchUI();
+                    });
+                });
+            }
+
+            updateBatchUI();
         }
 
         // ===== 读取留言 =====
@@ -539,24 +715,30 @@
             if (apiData) {
                 lastSha = apiData.sha;
                 lastMessages = apiData.messages || [];
+                // 清理无效的选中项
+                var validSet = new Set();
+                selectedIndices.forEach(function(idx) {
+                    if (idx >= 0 && idx < lastMessages.length) validSet.add(idx);
+                });
+                selectedIndices = validSet;
                 renderMessages(lastMessages);
                 return lastMessages;
             }
-            
+
             var cdnMsgs = await fetchFromCDN();
             if (cdnMsgs) {
                 lastMessages = cdnMsgs;
                 renderMessages(cdnMsgs);
                 return lastMessages;
             }
-            
+
             var rawMsgs = await fetchFromRaw();
             if (rawMsgs) {
                 lastMessages = rawMsgs;
                 renderMessages(rawMsgs);
                 return lastMessages;
             }
-            
+
             renderMessages([]);
             return [];
         }
@@ -647,7 +829,7 @@
             return true;
         }
 
-        // ===== 删除留言（管理员功能）=====
+        // ===== 单条删除留言 =====
         async function deleteMessage(msgIndex) {
             if (!isAdmin) { showToast('无权限'); return; }
             if (isPublishing) { showToast('操作中，请稍等...'); return; }
@@ -661,7 +843,6 @@
                 var msgs = apiData.messages;
                 lastSha = apiData.sha;
                 lastMessages = msgs;
-                renderMessages(msgs);
 
                 if (msgIndex < 0 || msgIndex >= msgs.length) {
                     showToast('留言不存在 ❌'); isPublishing = false; return;
@@ -669,6 +850,7 @@
 
                 msgs.splice(msgIndex, 1);
                 lastMessages = msgs;
+                selectedIndices.delete(msgIndex);
                 renderMessages(msgs);
 
                 var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
@@ -732,6 +914,110 @@
         }
         window.deleteMessage = deleteMessage;
 
+        // ===== 批量删除留言 =====
+        async function deleteBatchMessages() {
+            if (!isAdmin) { showToast('无权限'); return; }
+            if (isPublishing) { showToast('操作中，请稍等...'); return; }
+            if (selectedIndices.size === 0) { showToast('请先选择要删除的留言'); return; }
+            if (!confirm('确定删除选中的 ' + selectedIndices.size + ' 条留言吗？')) return;
+
+            isPublishing = true;
+            var batchDeleteBtn = document.getElementById('batchDeleteBtn');
+            batchDeleteBtn.textContent = '删除中...';
+            batchDeleteBtn.disabled = true;
+
+            try {
+                var apiData = await fetchFromAPI();
+                if (!apiData) { showToast('获取数据失败，请重试 ❌'); isPublishing = false; batchDeleteBtn.textContent = '🗑 批量删除'; batchDeleteBtn.disabled = false; return; }
+
+                var msgs = apiData.messages;
+                lastSha = apiData.sha;
+
+                // 从大到小排序选中的索引，从后往前删，避免索引错位
+                var toDelete = Array.from(selectedIndices).sort(function(a, b) { return b - a; });
+                for (var i = 0; i < toDelete.length; i++) {
+                    if (toDelete[i] >= 0 && toDelete[i] < msgs.length) {
+                        msgs.splice(toDelete[i], 1);
+                    }
+                }
+
+                lastMessages = msgs;
+                selectedIndices.clear();
+                renderMessages(msgs);
+
+                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
+                var putBody = { message: 'Batch delete messages', content: contentB64, sha: lastSha };
+
+                var putResp = await fetchWithTimeout(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GH_TOKEN,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putBody)
+                }, 15000);
+
+                if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
+                    try { fetch(PURGE_URL); } catch(e) {}
+                    showToast('批量删除成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    // SHA冲突，重新获取再删
+                    var retryData = await fetchFromAPI();
+                    if (retryData) {
+                        lastSha = retryData.sha;
+                        var freshMsgs = retryData.messages;
+                        // 重新删一遍
+                        var toDelete2 = Array.from(selectedIndices).sort(function(a, b) { return b - a; });
+                        for (var j = 0; j < toDelete2.length; j++) {
+                            if (toDelete2[j] >= 0 && toDelete2[j] < freshMsgs.length) {
+                                freshMsgs.splice(toDelete2[j], 1);
+                            }
+                        }
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: 'Batch delete messages', content: retryB64, sha: lastSha })
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var rData = await retryResp.json();
+                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast('批量删除成功！✅');
+                            lastMessages = freshMsgs;
+                            selectedIndices.clear();
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('删除失败，请重试 ❌');
+                            lastMessages = retryData.messages;
+                            selectedIndices.clear();
+                            renderMessages(retryData.messages);
+                        }
+                    } else {
+                        showToast('网络错误 ❌');
+                    }
+                } else {
+                    showToast('删除失败，请重试 ❌');
+                    lastMessages = apiData.messages;
+                    selectedIndices.clear();
+                    renderMessages(apiData.messages);
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+
+            isPublishing = false;
+            batchDeleteBtn.textContent = '🗑 批量删除';
+            batchDeleteBtn.disabled = false;
+        }
+
         // ===== 管理员登录/退出 =====
         function adminLogin() {
             var input = document.getElementById('adminPwdInput');
@@ -756,6 +1042,7 @@
         function adminLogout() {
             isAdmin = false;
             localStorage.removeItem('msgboard_admin');
+            selectedIndices.clear();
             updateAdminUI();
             showToast('已退出管理员模式');
             renderMessages(lastMessages);
@@ -772,7 +1059,7 @@
             document.getElementById('adminError').style.display = 'none';
         });
 
-        // ===== 页脚连点5次激活管理员登录 =====
+        // ===== 底部栏连点5次激活管理员登录 =====
         var footerClickCount = 0;
         var footerClickTimer = null;
         document.getElementById('footerText').addEventListener('click', function() {
@@ -784,6 +1071,27 @@
                 document.getElementById('adminModal').classList.add('show');
                 document.getElementById('adminPwdInput').focus();
             }
+        });
+
+        // ===== 全选/取消全选 =====
+        document.getElementById('selectAllCheckbox').addEventListener('change', function() {
+            if (this.checked) {
+                for (var i = 0; i < lastMessages.length; i++) {
+                    selectedIndices.add(i);
+                }
+            } else {
+                selectedIndices.clear();
+            }
+            renderMessages(lastMessages);
+        });
+
+        // ===== 批量删除按钮 =====
+        document.getElementById('batchDeleteBtn').addEventListener('click', deleteBatchMessages);
+
+        // ===== 取消选择按钮 =====
+        document.getElementById('batchCancelBtn').addEventListener('click', function() {
+            selectedIndices.clear();
+            renderMessages(lastMessages);
         });
 
         // ===== 留言板提交 =====
