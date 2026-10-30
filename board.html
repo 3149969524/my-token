@@ -224,6 +224,79 @@
             justify-content: flex-end;
         }
 
+        /* ===== 回复功能 ===== */
+        .msg-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .msg-reply-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: all 0.2s;
+        }
+        .msg-reply-btn:hover { color: var(--primary-dark); text-decoration: underline; }
+
+        .msg-reply-area {
+            margin-top: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .msg-reply-area.show { display: flex; }
+        .msg-reply-area input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .msg-reply-area input:focus { outline: none; border-color: var(--primary); }
+        .msg-reply-submit {
+            align-self: flex-end;
+            padding: 6px 18px;
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .msg-reply-submit:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(102,126,234,0.3); }
+        .msg-reply-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .msg-replies {
+            margin-top: 10px;
+            padding-left: 14px;
+            border-left: 3px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .msg-reply-item {
+            background: #f8f8ff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+        }
+        .msg-reply-item .msg-reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .msg-reply-item .msg-reply-name { font-weight: 600; color: var(--primary-dark); font-size: 0.85rem; }
+        .msg-reply-item .msg-reply-time { color: var(--gray); font-size: 0.75rem; }
+        .msg-reply-item .msg-reply-content { color: #555; line-height: 1.4; word-break: break-word; }
+
         .message-empty {
             text-align: center; color: var(--gray); padding: 50px 30px;
             font-size: 1rem; background: var(--white); border-radius: 12px;
@@ -681,6 +754,29 @@
                 var selClass = selectedIndices.has(realIdx) ? ' selected' : '';
                 var nameHtml = isAdmin && searchKeyword ? highlightKeyword(m.name, searchKeyword) : escapeHtml(m.name);
                 var contentHtml = isAdmin && searchKeyword ? highlightKeyword(m.content, searchKeyword) : escapeHtml(m.content);
+                // 回复按钮
+                var replyBtn = '<div class="msg-actions"><button class="msg-reply-btn" onclick="toggleReply(' + realIdx + ')">💬 回复</button></div>';
+                // 回复输入区
+                var replyArea = '<div class="msg-reply-area" id="replyArea_' + realIdx + '">' +
+                    '<input type="text" id="replyName_' + realIdx + '" placeholder="你的昵称（可选）" maxlength="20">' +
+                    '<input type="text" id="replyContent_' + realIdx + '" placeholder="写下你的回复..." maxlength="500">' +
+                    '<button class="msg-reply-submit" id="replyBtn_' + realIdx + '" onclick="submitReply(' + realIdx + ')">回复 ✈</button>' +
+                '</div>';
+                // 回复列表
+                var repliesHtml = '';
+                if (m.replies && m.replies.length > 0) {
+                    repliesHtml = '<div class="msg-replies">' + m.replies.map(function(r) {
+                        var rNameHtml = isAdmin && searchKeyword ? highlightKeyword(r.name, searchKeyword) : escapeHtml(r.name);
+                        var rContentHtml = isAdmin && searchKeyword ? highlightKeyword(r.content, searchKeyword) : escapeHtml(r.content);
+                        return '<div class="msg-reply-item">' +
+                            '<div class="msg-reply-header">' +
+                                '<span class="msg-reply-name">' + rNameHtml + '</span>' +
+                                '<span class="msg-reply-time">' + formatTime(r.time) + '</span>' +
+                            '</div>' +
+                            '<div class="msg-reply-content">' + rContentHtml + '</div>' +
+                        '</div>';
+                    }).join('') + '</div>';
+                }
                 return '<div class="message-item' + selClass + '" data-idx="' + realIdx + '">' +
                     checkbox +
                     '<div class="msg-body">' +
@@ -689,6 +785,9 @@
                             '<span class="msg-time">' + formatTime(m.time) + '</span>' +
                         '</div>' +
                         '<div class="msg-content">' + contentHtml + '</div>' +
+                        repliesHtml +
+                        replyBtn +
+                        replyArea +
                         adminActions +
                     '</div>' +
                 '</div>';
@@ -874,6 +973,118 @@
             if (btnEl) { btnEl.textContent = '发布留言 ✈'; btnEl.disabled = false; }
             return true;
         }
+
+        // ===== 回复功能 =====
+        function toggleReply(msgIndex) {
+            var area = document.getElementById('replyArea_' + msgIndex);
+            if (!area) return;
+            if (area.classList.contains('show')) {
+                area.classList.remove('show');
+            } else {
+                area.classList.add('show');
+                var contentInput = document.getElementById('replyContent_' + msgIndex);
+                if (contentInput) contentInput.focus();
+            }
+        }
+        window.toggleReply = toggleReply;
+
+        async function submitReply(msgIndex) {
+            var nameEl = document.getElementById('replyName_' + msgIndex);
+            var contentEl = document.getElementById('replyContent_' + msgIndex);
+            var btnEl = document.getElementById('replyBtn_' + msgIndex);
+            if (!contentEl || !contentEl.value.trim()) { showToast('请输入回复内容！'); return; }
+            if (isPublishing) { showToast('操作中，请稍等...'); return; }
+            isPublishing = true;
+            if (btnEl) { btnEl.textContent = '回复中...'; btnEl.disabled = true; }
+
+            var replyName = nameEl ? (nameEl.value.trim() || '匿名访客') : '匿名访客';
+            var replyContent = contentEl.value.trim();
+            var newReply = { name: replyName, content: replyContent, time: Date.now() };
+
+            try {
+                var apiData = await fetchFromAPI();
+                if (!apiData) { showToast('获取数据失败 ❌'); isPublishing = false; if (btnEl) { btnEl.textContent = '回复 ✈'; btnEl.disabled = false; } return; }
+
+                var msgs = apiData.messages;
+                lastSha = apiData.sha;
+                lastMessages = msgs;
+
+                if (msgIndex < 0 || msgIndex >= msgs.length) {
+                    showToast('留言不存在 ❌'); isPublishing = false; if (btnEl) { btnEl.textContent = '回复 ✈'; btnEl.disabled = false; } return;
+                }
+
+                if (!msgs[msgIndex].replies) msgs[msgIndex].replies = [];
+                msgs[msgIndex].replies.push(newReply);
+                if (msgs[msgIndex].replies.length > 50) msgs[msgIndex].replies = msgs[msgIndex].replies.slice(-50);
+
+                lastMessages = msgs;
+                renderMessages(msgs);
+
+                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
+                var putBody = { message: 'Add reply', content: contentB64, sha: lastSha };
+
+                var putResp = await fetchWithTimeout(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GH_TOKEN,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putBody)
+                }, 15000);
+
+                if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
+                    try { fetch(PURGE_URL); } catch(e) {}
+                    showToast('回复成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    showToast('同步数据中...');
+                    var retryData = await fetchFromAPI();
+                    if (retryData) {
+                        lastSha = retryData.sha;
+                        var freshMsgs = retryData.messages;
+                        if (msgIndex >= 0 && msgIndex < freshMsgs.length) {
+                            if (!freshMsgs[msgIndex].replies) freshMsgs[msgIndex].replies = [];
+                            freshMsgs[msgIndex].replies.push(newReply);
+                            if (freshMsgs[msgIndex].replies.length > 50) freshMsgs[msgIndex].replies = freshMsgs[msgIndex].replies.slice(-50);
+                        }
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: 'Add reply', content: retryB64, sha: lastSha })
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var rData = await retryResp.json();
+                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast('回复成功！✅');
+                            lastMessages = freshMsgs;
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('回复失败，请重试 ❌');
+                        }
+                    } else {
+                        showToast('网络错误 ❌');
+                    }
+                } else {
+                    showToast('回复失败，请重试 ❌');
+                    lastMessages = apiData.messages;
+                    renderMessages(apiData.messages);
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+
+            isPublishing = false;
+            if (btnEl) { btnEl.textContent = '回复 ✈'; btnEl.disabled = false; }
+        }
+        window.submitReply = submitReply;
 
         // ===== 单条删除留言 =====
         async function deleteMessage(msgIndex) {
