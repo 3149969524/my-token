@@ -797,6 +797,7 @@
             if (e.target.closest('.inner-door')) return;
             if (e.target.closest('.capsule-modal')) return;
             if (e.target.closest('.capsule-btn')) return;
+            if (e.target.closest('.capsule-toast')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
@@ -1194,7 +1195,9 @@
 
         // 输入框阻止冒泡（防止触发换句）
         capWrite.addEventListener('click', function(e) { e.stopPropagation(); });
-        capWrite.addEventListener('touchend', function(e) { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+        capWrite.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        capsuleDetail.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        capsuleLock.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
 
         function closeCapsule() {
             capsuleModal.classList.add('hide');
