@@ -296,6 +296,18 @@
         .msg-reply-item .msg-reply-name { font-weight: 600; color: var(--primary-dark); font-size: 0.85rem; }
         .msg-reply-item .msg-reply-time { color: var(--gray); font-size: 0.75rem; }
         .msg-reply-item .msg-reply-content { color: #555; line-height: 1.4; word-break: break-word; }
+        .msg-reply-item .msg-reply-delete {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .msg-reply-item .msg-reply-delete:hover { background: #c0392b; transform: scale(1.05); }
 
         .message-empty {
             text-align: center; color: var(--gray); padding: 50px 30px;
@@ -765,13 +777,17 @@
                 // 回复列表
                 var repliesHtml = '';
                 if (m.replies && m.replies.length > 0) {
-                    repliesHtml = '<div class="msg-replies">' + m.replies.map(function(r) {
+                    repliesHtml = '<div class="msg-replies">' + m.replies.map(function(r, ri) {
                         var rNameHtml = isAdmin && searchKeyword ? highlightKeyword(r.name, searchKeyword) : escapeHtml(r.name);
                         var rContentHtml = isAdmin && searchKeyword ? highlightKeyword(r.content, searchKeyword) : escapeHtml(r.content);
+                        var replyDelBtn = isAdmin ? '<button class="msg-reply-delete" onclick="deleteReply(' + realIdx + ',' + ri + ')">🗑</button>' : '';
                         return '<div class="msg-reply-item">' +
                             '<div class="msg-reply-header">' +
                                 '<span class="msg-reply-name">' + rNameHtml + '</span>' +
-                                '<span class="msg-reply-time">' + formatTime(r.time) + '</span>' +
+                                '<span style="display:flex;align-items:center;gap:6px;">' +
+                                    '<span class="msg-reply-time">' + formatTime(r.time) + '</span>' +
+                                    replyDelBtn +
+                                '</span>' +
                             '</div>' +
                             '<div class="msg-reply-content">' + rContentHtml + '</div>' +
                         '</div>';
@@ -1098,6 +1114,100 @@
             if (btnEl) { btnEl.textContent = '回复 ✈'; btnEl.disabled = false; }
         }
         window.submitReply = submitReply;
+
+        // ===== 删除回复 =====
+        async function deleteReply(msgIndex, replyIndex) {
+            if (!isAdmin) { showToast('无权限'); return; }
+            if (isPublishing) { showToast('操作中，请稍等...'); return; }
+            if (!confirm('确定删除这条回复吗？')) return;
+
+            isPublishing = true;
+            try {
+                var apiData = await fetchFromAPI();
+                if (!apiData) { showToast('获取数据失败 ❌'); isPublishing = false; return; }
+
+                var msgs = apiData.messages;
+                lastSha = apiData.sha;
+                lastMessages = msgs;
+
+                if (msgIndex < 0 || msgIndex >= msgs.length) {
+                    showToast('留言不存在 ❌'); isPublishing = false; return;
+                }
+                if (!msgs[msgIndex].replies || replyIndex < 0 || replyIndex >= msgs[msgIndex].replies.length) {
+                    showToast('回复不存在 ❌'); isPublishing = false; return;
+                }
+
+                msgs[msgIndex].replies.splice(replyIndex, 1);
+                if (msgs[msgIndex].replies.length === 0) delete msgs[msgIndex].replies;
+
+                lastMessages = msgs;
+                renderMessages(msgs);
+
+                var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
+                var putBody = { message: 'Delete a reply', content: contentB64, sha: lastSha };
+
+                var putResp = await fetchWithTimeout(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GH_TOKEN,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putBody)
+                }, 15000);
+
+                if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
+                    try { fetch(PURGE_URL); } catch(e) {}
+                    showToast('删除回复成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    var retryData = await fetchFromAPI();
+                    if (retryData) {
+                        lastSha = retryData.sha;
+                        var freshMsgs = retryData.messages;
+                        if (msgIndex >= 0 && msgIndex < freshMsgs.length && freshMsgs[msgIndex].replies) {
+                            if (replyIndex < freshMsgs[msgIndex].replies.length) {
+                                freshMsgs[msgIndex].replies.splice(replyIndex, 1);
+                                if (freshMsgs[msgIndex].replies.length === 0) delete freshMsgs[msgIndex].replies;
+                            }
+                        }
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: 'Delete a reply', content: retryB64, sha: lastSha })
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var rData = await retryResp.json();
+                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast('删除回复成功！✅');
+                            lastMessages = freshMsgs;
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('删除失败，请重试 ❌');
+                            lastMessages = retryData.messages;
+                            renderMessages(retryData.messages);
+                        }
+                    } else {
+                        showToast('网络错误 ❌');
+                    }
+                } else {
+                    showToast('删除失败，请重试 ❌');
+                    lastMessages = apiData.messages;
+                    renderMessages(apiData.messages);
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+            isPublishing = false;
+        }
+        window.deleteReply = deleteReply;
 
         // ===== 单条删除留言 =====
         async function deleteMessage(msgIndex) {
