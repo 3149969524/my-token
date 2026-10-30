@@ -164,6 +164,109 @@
             display: none;
         }
         .room-label.show { display: block; }
+
+        /* ===== 时间胶囊 ===== */
+        .capsule-btn {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            opacity: 0.25;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .capsule-btn:hover { opacity: 0.5; }
+        .capsule-btn svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .capsule-modal {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease;
+            padding: 30px;
+        }
+        .capsule-modal.show {
+            display: flex;
+        }
+        .capsule-modal.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .capsule-icon-big {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 28px;
+            opacity: 0.5;
+        }
+        .capsule-title {
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: rgba(240, 235, 224, 0.6);
+            letter-spacing: 0.2em;
+            margin-bottom: 16px;
+        }
+        .capsule-date {
+            font-size: 0.78rem;
+            color: rgba(240, 235, 224, 0.3);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        .capsule-countdown {
+            font-size: 0.7rem;
+            color: rgba(240, 235, 224, 0.2);
+            letter-spacing: 0.08em;
+        }
+        .capsule-content {
+            max-width: 80%;
+            max-height: 50vh;
+            overflow-y: auto;
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 2.1;
+            color: #f5e6c8;
+            text-align: center;
+            letter-spacing: 0.06em;
+            white-space: pre-wrap;
+            word-break: break-word;
+            text-shadow: 0 0 20px rgba(245, 230, 200, 0.1);
+            padding: 10px;
+        }
+        .capsule-content::-webkit-scrollbar { width: 2px; }
+        .capsule-content::-webkit-scrollbar-thumb { background: rgba(240,235,224,0.1); }
+        .capsule-close {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            font-size: 1.3rem;
+            color: rgba(240, 235, 224, 0.3);
+            cursor: pointer;
+            transition: color 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 10001;
+        }
+        .capsule-close:hover { color: rgba(240, 235, 224, 0.6); }
+        .capsule-fadein {
+            animation: capsuleFade 1.2s ease;
+        }
+        @keyframes capsuleFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -182,6 +285,32 @@
     <!-- ===== 句子 ===== -->
     <div class="sentence" id="sentence"></div>
     <div class="sign" id="yuSign">屿语</div>
+
+    <!-- ===== 时间胶囊 ===== -->
+    <div class="capsule-btn" id="capsuleBtn" title="时间胶囊">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="14" y="8" width="20" height="6" rx="3" stroke="rgba(240,235,224,0.4)" stroke-width="1.2" fill="rgba(240,235,224,0.03)"/>
+            <path d="M24 14 C18 14 14 18 14 24 L14 36 C14 39 18 42 24 42 C30 42 34 39 34 36 L34 24 C34 18 30 14 24 14 Z" stroke="rgba(240,235,224,0.4)" stroke-width="1.2" fill="rgba(240,235,224,0.03)"/>
+            <line x1="24" y1="14" x2="24" y2="42" stroke="rgba(240,235,224,0.15)" stroke-width="0.6"/>
+            <circle cx="24" cy="28" r="2" fill="rgba(240,235,224,0.2)"/>
+        </svg>
+    </div>
+
+    <div class="capsule-modal hide" id="capsuleModal" style="display:none;">
+        <div class="capsule-close" id="capsuleClose">✕</div>
+        <div class="capsule-icon-big">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="14" y="8" width="20" height="6" rx="3" stroke="rgba(240,235,224,0.5)" stroke-width="1.2" fill="rgba(240,235,224,0.05)"/>
+                <path d="M24 14 C18 14 14 18 14 24 L14 36 C14 39 18 42 24 42 C30 42 34 39 34 36 L34 24 C34 18 30 14 24 14 Z" stroke="rgba(240,235,224,0.5)" stroke-width="1.2" fill="rgba(240,235,224,0.05)"/>
+                <line x1="24" y1="14" x2="24" y2="42" stroke="rgba(240,235,224,0.2)" stroke-width="0.6"/>
+                <circle cx="24" cy="28" r="2" fill="rgba(240,235,224,0.3)"/>
+            </svg>
+        </div>
+        <div class="capsule-title" id="capsuleTitle">时间胶囊</div>
+        <div class="capsule-date" id="capsuleDate"></div>
+        <div class="capsule-countdown" id="capsuleCountdown"></div>
+        <div class="capsule-content" id="capsuleContent" style="display:none;"></div>
+    </div>
 
     <script>
         // ===== 暗号 =====
@@ -394,6 +523,8 @@
             if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.id === 'yuSign') return;
             if (e.target.closest('.inner-door')) return;
+            if (e.target.closest('.capsule-modal')) return;
+            if (e.target.closest('.capsule-btn')) return;
             showSentence();
         });
 
@@ -402,9 +533,117 @@
             if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.id === 'yuSign') return;
             if (e.target.closest('.inner-door')) return;
+            if (e.target.closest('.capsule-modal')) return;
+            if (e.target.closest('.capsule-btn')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
+
+        // ===== 时间胶囊 =====
+        // 密文格式: iv_base64:encrypted_base64
+        // 密钥 = SHA-256(暗号) 前32字节 → AES-256-CBC
+        // 不到日期 JS 根本不执行解密，源码只有密文
+        var capsules = [
+            { date: '2026-12-06', data: '2wkc1fk1YFwiAxjBtBJSvA==:qIPJX6x5jsyM5XJF0MSRiOYRSL2ScRSl9MmBnIyED+Y=' }
+        ];
+
+        var capsuleBtn = document.getElementById('capsuleBtn');
+        var capsuleModal = document.getElementById('capsuleModal');
+        var capsuleClose = document.getElementById('capsuleClose');
+        var capsuleDate = document.getElementById('capsuleDate');
+        var capsuleCountdown = document.getElementById('capsuleCountdown');
+        var capsuleContent = document.getElementById('capsuleContent');
+        var capsuleTitle = document.getElementById('capsuleTitle');
+
+        // base64 → Uint8Array
+        function b64ToBytes(b64) {
+            var bin = atob(b64);
+            var arr = new Uint8Array(bin.length);
+            for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            return arr;
+        }
+
+        // AES-256-CBC 解密（Web Crypto API）
+        async function decryptCapsule(data, keyRaw) {
+            var parts = data.split(':');
+            var iv = b64ToBytes(parts[0]);
+            var encrypted = b64ToBytes(parts[1]);
+
+            var keyBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(keyRaw));
+            var key = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']);
+            var decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: iv }, key, encrypted);
+            return new TextDecoder().decode(decrypted);
+        }
+
+        function openCapsule() {
+            var cap = capsules[0];
+            var openDate = new Date(cap.date + 'T00:00:00');
+            var now = new Date();
+            var today = new Date(now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T00:00:00');
+
+            capsuleModal.style.display = 'flex';
+            capsuleModal.classList.remove('hide');
+            capsuleModal.style.opacity = '0';
+            capsuleModal.style.transition = 'opacity 0.6s ease';
+            requestAnimationFrame(function() {
+                capsuleModal.style.opacity = '1';
+            });
+
+            capsuleDate.textContent = '开启日期：' + cap.date;
+
+            if (today < openDate) {
+                // 不到日期：只显示倒计时，绝不解密
+                var diff = openDate - today;
+                var days = Math.ceil(diff / 86400000);
+                capsuleTitle.textContent = '还没到时候';
+                capsuleCountdown.textContent = '还有 ' + days + ' 天';
+                capsuleContent.style.display = 'none';
+            } else {
+                // 到日期了：解密并展示
+                capsuleTitle.textContent = '时间到了';
+                capsuleCountdown.textContent = '';
+                capsuleContent.style.display = 'none';
+                capsuleContent.textContent = '';
+
+                decryptCapsule(cap.data, PASSWORD).then(function(text) {
+                    capsuleContent.textContent = text;
+                    capsuleContent.classList.add('capsule-fadein');
+                    capsuleContent.style.display = 'block';
+                }).catch(function() {
+                    capsuleTitle.textContent = '信封坏了';
+                    capsuleCountdown.textContent = '解不开 也许是屿忘了塞什么进去';
+                });
+            }
+        }
+
+        function closeCapsule() {
+            capsuleModal.classList.add('hide');
+            setTimeout(function() {
+                capsuleModal.style.display = 'none';
+                capsuleContent.textContent = '';
+                capsuleContent.style.display = 'none';
+            }, 600);
+        }
+
+        capsuleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openCapsule();
+        });
+
+        capsuleBtn.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            openCapsule();
+        }, { passive: false });
+
+        capsuleClose.addEventListener('click', function(e) {
+            e.stopPropagation();
+            closeCapsule();
+        });
+
+        capsuleModal.addEventListener('click', function(e) {
+            if (e.target === capsuleModal) closeCapsule();
+        });
     </script>
 
 </body>
