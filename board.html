@@ -856,6 +856,19 @@
         }
 
         async function fetchMessages() {
+            // 如果有回复输入框打开或有输入框获得焦点，跳过本次刷新避免键盘收回
+            var activeReply = document.querySelector('.msg-reply-area.show');
+            var focusedTag = document.activeElement ? document.activeElement.tagName : '';
+            if (activeReply || (focusedTag === 'INPUT' && document.activeElement && document.activeElement.id !== 'boardName')) {
+                // 仅静默更新数据，不重新渲染
+                var apiData = await fetchFromAPI();
+                if (apiData) {
+                    lastSha = apiData.sha;
+                    lastMessages = apiData.messages || [];
+                }
+                return lastMessages;
+            }
+
             var apiData = await fetchFromAPI();
             if (apiData) {
                 lastSha = apiData.sha;
