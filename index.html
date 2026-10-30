@@ -538,27 +538,11 @@
             h.addEventListener('mouseleave', (e) => {
                 e.currentTarget.classList.remove('is-active');
             });
-
-            // 点击：放大效果后跳转
-            h.addEventListener('click', (e) => {
-                const core = e.currentTarget.querySelector('.hotspot-core');
-                if (core) {
-                    core.style.transition = 'all 0.3s';
-                    core.style.transform = 'scale(2.5)';
-                    core.style.boxShadow = '0 0 50px rgba(255,255,255,1), 0 0 100px rgba(100,180,255,0.8)';
-                }
-            });
         });
 
-        // 返回页面时彻底重置所有光点（解决 bfcache + :hover 残留）
+        // 返回页面时重置所有光点
         window.addEventListener('pageshow', () => {
             resetHotspots();
-            // 清除所有内联样式
-            document.querySelectorAll('.hotspot-core').forEach(core => {
-                core.style.transition = '';
-                core.style.transform = '';
-                core.style.boxShadow = '';
-            });
         });
     </script>
 
