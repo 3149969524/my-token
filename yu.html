@@ -61,107 +61,9 @@
             letter-spacing: 0.5em;
             user-select: none;
             -webkit-user-select: none;
-            z-index: 5;
-        }
-
-        /* ===== 暗门 ===== */
-        .secret-door {
-            position: fixed;
-            bottom: 12px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-family: 'Noto Sans SC', sans-serif;
-            font-size: 0.62rem;
-            font-weight: 300;
-            color: rgba(240, 235, 224, 0.08);
-            letter-spacing: 0.15em;
-            user-select: none;
-            -webkit-user-select: none;
             cursor: pointer;
-            transition: color 0.6s ease;
+            transition: color 0.3s ease, opacity 0.8s ease;
             z-index: 5;
-        }
-        .secret-door:hover { color: rgba(240, 235, 224, 0.15); }
-
-        /* ===== 里屋门 ===== */
-        .inner-door {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease;
-        }
-        .inner-door.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .door-title {
-            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 300;
-            color: rgba(240, 235, 224, 0.7);
-            letter-spacing: 0.3em;
-            margin-bottom: 36px;
-            text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
-        }
-        .door-input {
-            width: 220px;
-            padding: 10px 16px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #f0ebe0;
-            font-size: 0.95rem;
-            font-family: 'Noto Sans SC', sans-serif;
-            text-align: center;
-            letter-spacing: 0.1em;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .door-input:focus {
-            border-color: rgba(240, 235, 224, 0.35);
-        }
-        .door-input::placeholder {
-            color: rgba(240, 235, 224, 0.18);
-            font-weight: 300;
-        }
-        .door-btn {
-            margin-top: 18px;
-            padding: 8px 36px;
-            background: transparent;
-            border: 1px solid rgba(240, 235, 224, 0.2);
-            border-radius: 50px;
-            color: rgba(240, 235, 224, 0.6);
-            font-size: 0.85rem;
-            font-family: 'Noto Sans SC', sans-serif;
-            letter-spacing: 0.2em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .door-btn:hover {
-            background: rgba(240, 235, 224, 0.06);
-            border-color: rgba(240, 235, 224, 0.4);
-            color: #f0ebe0;
-        }
-        .door-hint {
-            margin-top: 14px;
-            font-size: 0.68rem;
-            color: rgba(240, 235, 224, 0.15);
-            font-family: 'Noto Sans SC', sans-serif;
-            letter-spacing: 0.1em;
-        }
-        .shake {
-            animation: shake 0.4s ease;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
         }
 
         /* ===== 里屋标识 ===== */
@@ -186,30 +88,14 @@
 </head>
 <body>
 
-    <!-- ===== 里屋暗门 ===== -->
-    <div class="inner-door hide" id="innerDoor" style="display:none;">
-        <div class="door-title">里屋</div>
-        <input type="password" class="door-input" id="doorInput" placeholder="暗号" autocomplete="off">
-        <button class="door-btn" id="doorBtn">进来</button>
-        <div class="door-hint">门是虚掩的</div>
-    </div>
-
     <!-- ===== 里屋标识 ===== -->
     <div class="room-label" id="roomLabel">里屋</div>
 
     <!-- ===== 句子 ===== -->
     <div class="sentence" id="sentence"></div>
-
-    <!-- ===== 签名 ===== -->
-    <div class="sign">屿语</div>
-
-    <!-- ===== 暗门入口 ===== -->
-    <div class="secret-door" id="secretDoor">·</div>
+    <div class="sign" id="yuSign">屿语</div>
 
     <script>
-        // ===== 暗号 =====
-        var PASSWORD = 'hmj1314520';
-
         // ===== 外屋句子（给陌生人的）=====
         var outerSentences = [
             '潮水每天来两次 从不失约',
@@ -260,11 +146,8 @@
         var isInRoom = false;
         var current = -1;
         var el = document.getElementById('sentence');
-        var innerDoor = document.getElementById('innerDoor');
-        var doorInput = document.getElementById('doorInput');
-        var doorBtn = document.getElementById('doorBtn');
-        var secretDoor = document.getElementById('secretDoor');
         var roomLabel = document.getElementById('roomLabel');
+        var yuSign = document.getElementById('yuSign');
 
         // ===== 换句 =====
         function showSentence() {
@@ -289,98 +172,65 @@
             }, 1200);
         }
 
-        // ===== 进里屋 =====
-        function tryEnter() {
-            if (doorInput.value === PASSWORD) {
-                innerDoor.classList.add('hide');
-                isInRoom = true;
-                roomLabel.classList.add('show');
-                sessionStorage.setItem('yu_room', '1');
-                // 重置换句，用里屋句子
-                current = -1;
-                el.classList.remove('show');
-                setTimeout(function() {
-                    innerDoor.style.display = 'none';
-                    showSentence();
-                }, 800);
-            } else {
-                doorInput.classList.add('shake');
-                doorInput.value = '';
-                setTimeout(function() {
-                    doorInput.classList.remove('shake');
-                }, 400);
-            }
-        }
-
-        doorBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            tryEnter();
-        });
-
-        doorInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                tryEnter();
-            }
-            e.stopPropagation();
-        });
-
-        // 每次打开都从外屋开始
-        sessionStorage.removeItem('yu_room');
-
-        // ===== 暗门触发：连点5次最底部小字 =====
+        // ===== 连点屿语进里屋 =====
         var tapCount = 0;
         var tapTimer = null;
 
-        secretDoor.addEventListener('click', function(e) {
+        function handleSignTap(e) {
+            if (isInRoom) return; // 已在里屋 不重复触发
             e.stopPropagation();
+            e.preventDefault();
+
             tapCount++;
-            // 点了之后小字变亮一点，给反馈
-            secretDoor.style.color = 'rgba(240, 235, 224, 0.2)';
+
+            // 视觉反馈：点的时候屿语闪一下
+            yuSign.style.color = 'rgba(240, 235, 224, 0.5)';
             setTimeout(function() {
-                secretDoor.style.color = '';
+                yuSign.style.color = '';
             }, 300);
 
             if (tapCount >= 5) {
                 tapCount = 0;
-                innerDoor.style.display = 'flex';
-                innerDoor.classList.remove('hide');
-                // 让门慢慢出现
-                innerDoor.style.opacity = '0';
-                innerDoor.style.transition = 'opacity 0.6s ease';
-                requestAnimationFrame(function() {
-                    innerDoor.style.opacity = '1';
-                });
+                isInRoom = true;
+                roomLabel.classList.add('show');
+                current = -1;
+                el.classList.remove('show');
+                // 屿语渐隐
+                yuSign.style.transition = 'opacity 0.8s ease';
+                yuSign.style.opacity = '0.15';
                 setTimeout(function() {
-                    doorInput.focus();
-                }, 600);
+                    showSentence();
+                }, 800);
             }
 
             clearTimeout(tapTimer);
             tapTimer = setTimeout(function() {
                 tapCount = 0;
             }, 2000);
-        });
+        }
+
+        yuSign.addEventListener('click', handleSignTap);
+        yuSign.addEventListener('touchend', function(e) {
+            if (isInRoom) return;
+            e.preventDefault();
+            e.stopPropagation();
+            handleSignTap(e);
+        }, { passive: false });
 
         // ===== 初始显示 =====
         showSentence();
 
-        // ===== 点击换句 =====
+        // ===== 点击换句（排除屿语）=====
         document.addEventListener('click', function(e) {
-            // 里屋门开着时不触发
-            if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
-            if (e.target.classList.contains('sign')) return;
-            if (e.target.classList.contains('secret-door')) return;
-            if (e.target.closest('.inner-door')) return;
+            if (isInRoom && e.target.id === 'yuSign') return;
+            if (e.target.id === 'yuSign') return;
             showSentence();
         });
 
         // 防止双击放大
         document.addEventListener('touchend', function(e) {
-            if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
-            if (e.target.classList.contains('sign')) return;
-            if (e.target.classList.contains('secret-door')) return;
-            if (e.target.closest('.inner-door')) return;
+            if (isInRoom && e.target.id === 'yuSign') return;
+            if (e.target.id === 'yuSign') return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
