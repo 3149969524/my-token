@@ -767,13 +767,15 @@
                            (m.content && m.content.toLowerCase().indexOf(kw) !== -1);
                 });
             }
-            // 置顶留言排到最前
+            // 置顶留言排到最前（各自翻转：最新的在前）
             var pinned = [];
             var normal = [];
             displayMsgs.forEach(function(m) {
                 if (m.pinned) pinned.push(m);
                 else normal.push(m);
             });
+            pinned.reverse();
+            normal.reverse();
             displayMsgs = pinned.concat(normal);
 
             if (!displayMsgs || displayMsgs.length === 0) {
@@ -854,7 +856,7 @@
                         adminActions +
                     '</div>' +
                 '</div>';
-            }).reverse().join('');
+            }).join('');
 
             boardList.innerHTML = html;
 
