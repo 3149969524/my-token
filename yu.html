@@ -634,6 +634,102 @@
             border-color: rgba(245,230,200,0.4);
             color: rgba(245,230,200,1);
         }
+
+        /* 管理员 */
+        .capsule-admin-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+        .capsule-admin-bar.show { display: flex; }
+        .capsule-admin-btn {
+            padding: 6px 14px;
+            background: rgba(245,230,200,0.06);
+            border: 1px solid rgba(245,230,200,0.2);
+            border-radius: 20px;
+            color: rgba(245,230,200,0.7);
+            font-size: 0.8rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .capsule-admin-btn:hover {
+            background: rgba(245,230,200,0.12);
+            color: rgba(245,230,200,1);
+        }
+        .capsule-admin-badge {
+            font-size: 0.75rem;
+            color: rgba(245,230,200,0.5);
+            letter-spacing: 0.05em;
+        }
+        .capsule-card-delete {
+            display: none;
+            padding: 4px 12px;
+            background: rgba(255,80,80,0.08);
+            border: 1px solid rgba(255,80,80,0.2);
+            border-radius: 16px;
+            color: rgba(255,120,120,0.7);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .capsule-admin-mode .capsule-card-delete { display: inline-block; }
+        .capsule-card-delete:hover {
+            background: rgba(255,80,80,0.15);
+            color: rgba(255,120,120,1);
+        }
+        .capsule-detail-admin {
+            display: none;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .capsule-admin-mode .capsule-detail-admin { display: block; }
+        .capsule-detail-delete-btn {
+            padding: 10px 24px;
+            background: rgba(255,80,80,0.08);
+            border: 1px solid rgba(255,80,80,0.25);
+            border-radius: 20px;
+            color: rgba(255,120,120,0.8);
+            font-size: 0.85rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .capsule-detail-delete-btn:hover {
+            background: rgba(255,80,80,0.15);
+            color: rgba(255,150,150,1);
+        }
+        .capsule-admin-prompt {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 10px;
+        }
+        .capsule-admin-prompt.show { display: flex; }
+        .capsule-admin-prompt input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(240,235,224,0.12);
+            border-radius: 10px;
+            color: #f0ebe0;
+            font-size: 0.88rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            outline: none;
+            text-align: center;
+        }
+        .capsule-admin-prompt input:focus {
+            border-color: rgba(240,235,224,0.35);
+        }
     </style>
 </head>
 <body>
@@ -677,6 +773,17 @@
         <!-- 列表视图 -->
         <div class="capsule-search" id="capsuleSearch">
             <input type="text" id="searchName" class="capsule-search-name" placeholder="🔍 按名字搜索胶囊">
+            <!-- 管理员密码输入 -->
+            <div class="capsule-admin-prompt" id="capsuleAdminPrompt">
+                <input type="password" id="capsuleAdminPwd" placeholder="管理员密码" autocomplete="off">
+                <button class="capsule-admin-btn" id="capsuleAdminLoginBtn">进入管理模式</button>
+            </div>
+            <!-- 管理员工具栏 -->
+            <div class="capsule-admin-bar" id="capsuleAdminBar">
+                <span class="capsule-admin-badge">管理模式</span>
+                <button class="capsule-admin-btn" id="capsuleAdminToggleBtn">删除模式 开</button>
+                <button class="capsule-admin-btn" id="capsuleAdminExitBtn">退出管理</button>
+            </div>
             <div class="capsule-search-row">
                 <span class="capsule-search-label">从</span>
                 <input type="date" id="searchDateFrom" placeholder="开始日期">
@@ -703,6 +810,10 @@
                 <input type="password" class="capsule-input" id="capsuleInput" placeholder="暗号" autocomplete="off">
                 <button class="capsule-lock-btn" id="capsuleLockBtn">解锁</button>
                 <div class="capsule-lock-hint" id="capsuleLockHint">里屋的人才能看</div>
+            </div>
+            <!-- 管理员删除区 -->
+            <div class="capsule-detail-admin" id="capsuleDetailAdmin">
+                <button class="capsule-detail-delete-btn" id="capsuleDetailDeleteBtn">删除这颗胶囊</button>
             </div>
         </div>
         <!-- 写胶囊表单 -->
@@ -960,6 +1071,8 @@
             if (e.target.closest('.capsule-btn')) return;
             if (e.target.closest('.capsule-toast')) return;
             if (e.target.closest('.capsule-write-fab')) return;
+            if (e.target.closest('.capsule-admin-prompt')) return;
+            if (e.target.closest('.capsule-admin-bar')) return;
             if (e.cancelable) e.preventDefault();
             showSentence();
         }, { passive: false });
@@ -1153,6 +1266,17 @@
         var currentFilter = 'all';
         var capsuleWriteFab = document.getElementById('capsuleWriteFab');
         var capsuleWriteFabBtn = document.getElementById('capsuleWriteFabBtn');
+        // 管理员
+        var isAdminMode = false;
+        var isAdminDeleteMode = false;
+        var capsuleAdminPrompt = document.getElementById('capsuleAdminPrompt');
+        var capsuleAdminPwd = document.getElementById('capsuleAdminPwd');
+        var capsuleAdminLoginBtn = document.getElementById('capsuleAdminLoginBtn');
+        var capsuleAdminBar = document.getElementById('capsuleAdminBar');
+        var capsuleAdminToggleBtn = document.getElementById('capsuleAdminToggleBtn');
+        var capsuleAdminExitBtn = document.getElementById('capsuleAdminExitBtn');
+        var capsuleDetailAdmin = document.getElementById('capsuleDetailAdmin');
+        var capsuleDetailDeleteBtn = document.getElementById('capsuleDetailDeleteBtn');
 
         async function openCapsuleList() {
             capsuleModal.style.display = 'flex';
@@ -1275,8 +1399,76 @@
                     openCapsuleDetail(realIdx);
                 });
 
+                // 管理员删除按钮
+                var delBtn = document.createElement('div');
+                delBtn.className = 'capsule-card-delete';
+                delBtn.textContent = '删除';
+                delBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteCapsule(realIdx);
+                });
+                card.appendChild(delBtn);
+
                 capsuleList.appendChild(card);
             });
+        }
+
+        // ===== 删除胶囊（管理员） =====
+        async function deleteCapsule(idx) {
+            var all = getAllCapsules();
+            var cap = all[idx];
+            var capName = cap.name || ('第 ' + (idx+1) + ' 颗');
+            if (!confirm('确定要删除「' + capName + '」吗？\n删除后不可恢复。')) return;
+
+            // 站长胶囊（内置在源码里）不能删除
+            if (idx < capsules.length) {
+                showCapToast('内置胶囊不可删除');
+                return;
+            }
+
+            // 用户胶囊：从 capsules.json 中删除
+            var userIdx = idx - capsules.length;
+            try {
+                // 先获取现有数据和 sha
+                var resp = await fetch(CAP_API_URL, {
+                    headers: { 'Authorization': 'token ' + CAP_GH_TOKEN, 'Accept': 'application/vnd.github+json' }
+                });
+                if (!resp.ok) { showCapToast('删除失败 稍后再试'); return; }
+                var meta = await resp.json();
+                var sha = meta.sha;
+                var content = atob(meta.content.replace(/\n/g, ''));
+                var data = JSON.parse(content);
+                if (userIdx < 0 || userIdx >= data.capsules.length) {
+                    showCapToast('找不到这颗胶囊');
+                    return;
+                }
+                data.capsules.splice(userIdx, 1);
+                var jsonStr = JSON.stringify(data, null, 2);
+                var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+                var payload = JSON.stringify({
+                    message: 'delete capsule: ' + capName,
+                    content: b64,
+                    sha: sha
+                });
+                var resp2 = await fetch(CAP_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + CAP_GH_TOKEN,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: payload
+                });
+                if (resp2.ok) {
+                    showCapToast('已删除「' + capName + '」');
+                    await fetchUserCapsules();
+                    showCapsuleList();
+                } else {
+                    showCapToast('删除失败 稍后再试');
+                }
+            } catch(e) {
+                showCapToast('出了点问题 稍后再试');
+            }
         }
 
         // ===== 打开单颗胶囊详情 =====
@@ -1299,17 +1491,22 @@
             if (!isCapsuleOpen(cap)) {
                 capsuleTitle.textContent = cap.name || ('第 ' + (idx+1) + ' 颗');
                 capsuleCountdown.textContent = '还有 ' + getCountdown(cap);
+                // 管理员可提前查看
+                if (isAdminMode) {
+                    capsuleCountdown.textContent = '还有 ' + getCountdown(cap) + '（管理员提前查看）';
+                    doDecryptCapsule(idx);
+                }
             } else {
                 if (!cap.locked) {
                     // 无密码：直接解密
                     doDecryptCapsule(idx);
-                } else if (isInRoom || cap.key === PASSWORD) {
-                    // 有密码但已在里屋 或 站长胶囊：直接解密
+                } else if (isInRoom || cap.key === PASSWORD || isAdminMode) {
+                    // 有密码但已在里屋 或 站长胶囊 或 管理员：直接解密
                     doDecryptCapsule(idx);
                 } else {
                     // 有密码且在外屋：先输暗号
-                    capsuleTitle.textContent = '时间到了';
-                    capsuleCountdown.textContent = '但得先回里屋';
+                    capsuleTitle.textContent = cap.name || ('第 ' + (idx+1) + ' 颗');
+                    capsuleCountdown.textContent = '时间到了 但得先输暗号';
                     capsuleLock.style.display = 'flex';
                     capsuleLockHint.textContent = cap.hint || '输入暗号';
                     setTimeout(function() {
@@ -1474,6 +1671,39 @@
         searchName.addEventListener('click', function(e) { e.stopPropagation(); });
         searchName.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
 
+        // 长按名字搜索框3秒 显示管理员入口
+        var adminTouchTimer = null;
+        searchName.addEventListener('touchstart', function(e) {
+            adminTouchTimer = setTimeout(function() {
+                capsuleAdminPrompt.classList.toggle('show');
+                if (capsuleAdminPrompt.classList.contains('show')) {
+                    setTimeout(function() { capsuleAdminPwd.focus(); }, 300);
+                }
+            }, 3000);
+        }, { passive: true });
+        searchName.addEventListener('touchend', function() {
+            if (adminTouchTimer) { clearTimeout(adminTouchTimer); adminTouchTimer = null; }
+        }, { passive: true });
+        searchName.addEventListener('touchmove', function() {
+            if (adminTouchTimer) { clearTimeout(adminTouchTimer); adminTouchTimer = null; }
+        }, { passive: true });
+        // 桌面端：连续点击搜索框标题5次
+        var adminClickCount = 0;
+        var adminClickTimer = null;
+        searchName.addEventListener('click', function(e) {
+            e.stopPropagation();
+            adminClickCount++;
+            if (adminClickTimer) clearTimeout(adminClickTimer);
+            adminClickTimer = setTimeout(function() { adminClickCount = 0; }, 2000);
+            if (adminClickCount >= 5) {
+                adminClickCount = 0;
+                capsuleAdminPrompt.classList.toggle('show');
+                if (capsuleAdminPrompt.classList.contains('show')) {
+                    setTimeout(function() { capsuleAdminPwd.focus(); }, 300);
+                }
+            }
+        });
+
         function closeCapsule() {
             capsuleModal.classList.add('hide');
             setTimeout(function() {
@@ -1486,6 +1716,12 @@
                 capWrite.classList.remove('show');
                 capsuleBack.style.display = 'none';
                 capsuleWriteFab.classList.remove('show');
+                // 重置管理员
+                isAdminMode = false;
+                isAdminDeleteMode = false;
+                capsuleAdminBar.classList.remove('show');
+                capsuleAdminPrompt.classList.remove('show');
+                capsuleModal.classList.remove('capsule-admin-mode');
                 currentCapsule = -1;
                 // 重置搜索
                 searchName.value = '';
@@ -1517,6 +1753,58 @@
 
         capsuleModal.addEventListener('click', function(e) {
             if (e.target === capsuleModal) closeCapsule();
+        });
+
+        // ===== 管理员功能 =====
+        // 管理员登录
+        capsuleAdminLoginBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (capsuleAdminPwd.value === PASSWORD) {
+                isAdminMode = true;
+                isAdminDeleteMode = true;
+                capsuleAdminPrompt.classList.remove('show');
+                capsuleAdminBar.classList.add('show');
+                capsuleModal.classList.add('capsule-admin-mode');
+                capsuleAdminToggleBtn.textContent = '删除模式 开';
+                capsuleAdminPwd.value = '';
+                showCapToast('已进入管理模式');
+                showCapsuleList();
+            } else {
+                showCapToast('密码不对');
+                capsuleAdminPwd.value = '';
+            }
+        });
+        capsuleAdminLoginBtn.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        capsuleAdminPwd.addEventListener('click', function(e) { e.stopPropagation(); });
+        capsuleAdminPwd.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        capsuleAdminPwd.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') capsuleAdminLoginBtn.click();
+        });
+
+        // 切换删除模式
+        capsuleAdminToggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isAdminDeleteMode = !isAdminDeleteMode;
+            capsuleAdminToggleBtn.textContent = '删除模式 ' + (isAdminDeleteMode ? '开' : '关');
+            capsuleModal.classList.toggle('capsule-admin-mode', isAdminDeleteMode);
+            showCapsuleList();
+        });
+
+        // 退出管理模式
+        capsuleAdminExitBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isAdminMode = false;
+            isAdminDeleteMode = false;
+            capsuleAdminBar.classList.remove('show');
+            capsuleModal.classList.remove('capsule-admin-mode');
+            showCapToast('已退出管理模式');
+            showCapsuleList();
+        });
+
+        // 详情页删除按钮
+        capsuleDetailDeleteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (currentCapsule >= 0) deleteCapsule(currentCapsule);
         });
 
         // 底部写胶囊按钮
