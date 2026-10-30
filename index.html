@@ -200,10 +200,10 @@
 
         .admin-modal-box h3 { text-align: center; margin-bottom: 20px; font-size: 1.3rem; padding-right: 30px; }
         .admin-close-btn {
-            position: absolute; top: 10px; right: 12px;
-            background: none; border: none; font-size: 1.5rem;
-            color: #ccc; cursor: pointer; line-height: 1;
-            padding: 4px 8px;
+            position: absolute; top: 8px; right: 10px;
+            background: none; border: none; font-size: 1.6rem;
+            color: #888; cursor: pointer; line-height: 1;
+            padding: 6px 10px; z-index: 10;
         }
         .admin-close-btn:hover { color: #e74c3c; }
         .admin-modal-box input {
@@ -480,13 +480,20 @@
         }
 
         async function fetchMessages() {
-            var cdnMsgs = await fetchFromCDN();
+            // CDN和Raw同时请求，谁先回来用谁
+            var cdnPromise = fetchFromCDN();
+            var rawPromise = fetchFromRaw();
+            
+            // 先等CDN（通常更快），超时就直接等Raw
+            var cdnMsgs = await cdnPromise;
             if (cdnMsgs && cdnMsgs.length > 0) {
                 lastMessages = cdnMsgs;
                 renderMessages(cdnMsgs);
             }
-            var rawMsgs = await fetchFromRaw();
-            if (rawMsgs) {
+            
+            // 再等Raw获取最新数据（可能比CDN更新）
+            var rawMsgs = await rawPromise;
+            if (rawMsgs && rawMsgs.length > 0) {
                 lastMessages = rawMsgs;
                 renderMessages(rawMsgs);
             } else if (!cdnMsgs) {
@@ -494,6 +501,8 @@
             }
             return lastMessages;
         }
+
+var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
 
         // ===== 发布留言 =====
         async function addMessage(name, content, btnEl) {
@@ -505,19 +514,18 @@
             var newMsg = { name: name.trim() || '匿名访客', content: content.trim(), time: Date.now() };
 
             try {
-                var apiData = await fetchFromAPI();
-                var msgs = apiData ? apiData.messages : (lastMessages.slice());
-                var sha = apiData ? apiData.sha : null;
-
+                // 用本地缓存的数据 + 缓存的SHA直接提交，跳过GET请求
+                var msgs = lastMessages.slice();
                 msgs.push(newMsg);
                 if (msgs.length > MAX_MSGS) msgs = msgs.slice(msgs.length - MAX_MSGS);
 
+                // 先乐观更新UI，让用户感觉秒发
                 lastMessages = msgs;
                 renderMessages(msgs);
 
                 var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
                 var putBody = { message: 'Update messages', content: contentB64 };
-                if (sha) putBody.sha = sha;
+                if (lastSha) putBody.sha = lastSha;
 
                 var putResp = await fetchWithTimeout(API_URL, {
                     method: 'PUT',
@@ -530,17 +538,53 @@
                 }, 15000);
 
                 if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
                     try { fetch(PURGE_URL); } catch(e) {}
                     showToast('发布成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    // SHA冲突，需要重新获取
+                    showToast('同步数据中...');
+                    var apiData = await fetchFromAPI();
+                    if (apiData) {
+                        lastSha = apiData.sha;
+                        var freshMsgs = apiData.messages;
+                        freshMsgs.push(newMsg);
+                        if (freshMsgs.length > MAX_MSGS) freshMsgs = freshMsgs.slice(freshMsgs.length - MAX_MSGS);
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryBody = { message: 'Update messages', content: retryB64, sha: lastSha };
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(retryBody)
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var retryData = await retryResp.json();
+                            if (retryData.content && retryData.content.sha) lastSha = retryData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast('发布成功！✅');
+                            lastMessages = freshMsgs;
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('发布失败，请重试 ❌');
+                        }
+                    } else {
+                        showToast('网络错误，请重试 ❌');
+                    }
                 } else {
                     showToast('发布失败，请重试 ❌');
-                    var fresh = await fetchFromRaw();
-                    if (fresh) { lastMessages = fresh; renderMessages(fresh); }
+                    // 回滚
+                    var fresh = await fetchFromAPI();
+                    if (fresh) { lastMessages = fresh.messages; lastSha = fresh.sha; renderMessages(fresh.messages); }
                 }
             } catch(e) {
                 showToast('网络错误，请重试 ❌');
-                var fresh = await fetchFromRaw();
-                if (fresh) { lastMessages = fresh; renderMessages(fresh); }
+                var fresh2 = await fetchFromAPI();
+                if (fresh2) { lastMessages = fresh2.messages; lastSha = fresh2.sha; renderMessages(fresh2.messages); }
             }
 
             isPublishing = false;
@@ -556,24 +600,18 @@
 
             isPublishing = true;
             try {
-                var apiData = await fetchFromAPI();
-                if (!apiData) { showToast('获取数据失败 ❌'); isPublishing = false; return; }
-
-                var msgs = apiData.messages;
-                var sha = apiData.sha;
-
+                var msgs = lastMessages.slice();
                 if (msgIndex < 0 || msgIndex >= msgs.length) {
                     showToast('留言不存在 ❌'); isPublishing = false; return;
                 }
 
                 msgs.splice(msgIndex, 1);
-
                 lastMessages = msgs;
                 renderMessages(msgs);
 
                 var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
                 var putBody = { message: 'Delete a message', content: contentB64 };
-                if (sha) putBody.sha = sha;
+                if (lastSha) putBody.sha = lastSha;
 
                 var putResp = await fetchWithTimeout(API_URL, {
                     method: 'PUT',
@@ -586,12 +624,46 @@
                 }, 15000);
 
                 if (putResp && putResp.ok) {
+                    var putData = await putResp.json();
+                    if (putData.content && putData.content.sha) lastSha = putData.content.sha;
                     try { fetch(PURGE_URL); } catch(e) {}
                     showToast('删除成功！✅');
+                } else if (putResp && putResp.status === 409) {
+                    // SHA冲突，重新获取
+                    showToast('同步数据中...');
+                    var apiData = await fetchFromAPI();
+                    if (apiData) {
+                        lastSha = apiData.sha;
+                        var freshMsgs = apiData.messages;
+                        if (msgIndex < freshMsgs.length) freshMsgs.splice(msgIndex, 1);
+                        var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
+                        var retryBody = { message: 'Delete a message', content: retryB64, sha: lastSha };
+                        var retryResp = await fetchWithTimeout(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + GH_TOKEN,
+                                'Accept': 'application/vnd.github+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(retryBody)
+                        }, 15000);
+                        if (retryResp && retryResp.ok) {
+                            var retryData = await retryResp.json();
+                            if (retryData.content && retryData.content.sha) lastSha = retryData.content.sha;
+                            try { fetch(PURGE_URL); } catch(e) {}
+                            showToast('删除成功！✅');
+                            lastMessages = freshMsgs;
+                            renderMessages(freshMsgs);
+                        } else {
+                            showToast('删除失败，请重试 ❌');
+                        }
+                    } else {
+                        showToast('获取数据失败 ❌');
+                    }
                 } else {
                     showToast('删除失败，请重试 ❌');
-                    var fresh = await fetchFromRaw();
-                    if (fresh) { lastMessages = fresh; renderMessages(fresh); }
+                    var fresh = await fetchFromAPI();
+                    if (fresh) { lastMessages = fresh.messages; lastSha = fresh.sha; renderMessages(fresh.messages); }
                 }
             } catch(e) {
                 showToast('网络错误 ❌');
@@ -698,9 +770,22 @@
         // ===== 初始化 =====
         updateAdminUI();
         fetchMessages();
+        // 初始化时获取SHA缓存，后续发布不用再GET
+        fetchFromAPI().then(function(data) {
+            if (data) {
+                lastSha = data.sha;
+                if (data.messages && data.messages.length > 0) {
+                    lastMessages = data.messages;
+                    renderMessages(data.messages);
+                }
+            }
+        });
         setInterval(function() {
-            fetchFromRaw().then(function(m) {
-                if (m) { lastMessages = m; renderMessages(m); }
+            fetchFromAPI().then(function(data) {
+                if (data) {
+                    lastSha = data.sha;
+                    if (data.messages) { lastMessages = data.messages; renderMessages(data.messages); }
+                }
             });
         }, 20000);
     </script>
