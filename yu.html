@@ -321,6 +321,70 @@
             font-family: 'Noto Sans SC', sans-serif;
             letter-spacing: 0.1em;
         }
+
+        /* 胶囊列表 */
+        .capsule-list {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 320px;
+            width: 80%;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .capsule-list.show { display: flex; }
+        .capsule-list::-webkit-scrollbar { width: 2px; }
+        .capsule-list::-webkit-scrollbar-thumb { background: rgba(240,235,224,0.1); }
+
+        .capsule-card {
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(240,235,224,0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .capsule-card:hover {
+            border-color: rgba(240,235,224,0.3);
+            background: rgba(255,255,255,0.05);
+        }
+        .capsule-card-title {
+            font-size: 0.9rem;
+            color: rgba(240,235,224,0.7);
+            letter-spacing: 0.05em;
+        }
+        .capsule-card-date {
+            font-size: 0.72rem;
+            color: rgba(240,235,224,0.3);
+            margin-top: 6px;
+        }
+        .capsule-card-status {
+            font-size: 0.68rem;
+            color: rgba(240,235,224,0.2);
+            margin-top: 4px;
+        }
+        .capsule-detail {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .capsule-detail.show { display: flex; }
+        .capsule-back {
+            position: fixed;
+            top: 20px;
+            left: 24px;
+            font-size: 0.8rem;
+            color: rgba(240,235,224,0.3);
+            cursor: pointer;
+            transition: color 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 10001;
+        }
+        .capsule-back:hover { color: rgba(240,235,224,0.6); }
     </style>
 </head>
 <body>
@@ -352,6 +416,7 @@
 
     <div class="capsule-modal hide" id="capsuleModal" style="display:none;">
         <div class="capsule-close" id="capsuleClose">✕</div>
+        <div class="capsule-back" id="capsuleBack" style="display:none;">‹ 返回</div>
         <div class="capsule-icon-big">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="14" y="8" width="20" height="6" rx="3" stroke="rgba(240,235,224,0.5)" stroke-width="1.2" fill="rgba(240,235,224,0.05)"/>
@@ -360,15 +425,20 @@
                 <circle cx="24" cy="28" r="2" fill="rgba(240,235,224,0.3)"/>
             </svg>
         </div>
-        <div class="capsule-title" id="capsuleTitle">时间胶囊</div>
-        <div class="capsule-date" id="capsuleDate"></div>
-        <div class="capsule-countdown" id="capsuleCountdown"></div>
-        <div class="capsule-content" id="capsuleContent" style="display:none;"></div>
-        <!-- 胶囊密码门 -->
-        <div class="capsule-lock" id="capsuleLock" style="display:none;">
-            <input type="password" class="capsule-input" id="capsuleInput" placeholder="暗号" autocomplete="off">
-            <button class="capsule-lock-btn" id="capsuleLockBtn">解锁</button>
-            <div class="capsule-lock-hint">里屋的人才能看</div>
+        <!-- 列表视图 -->
+        <div class="capsule-list" id="capsuleList"></div>
+        <!-- 详情视图 -->
+        <div class="capsule-detail" id="capsuleDetail">
+            <div class="capsule-title" id="capsuleTitle">时间胶囊</div>
+            <div class="capsule-date" id="capsuleDate"></div>
+            <div class="capsule-countdown" id="capsuleCountdown"></div>
+            <div class="capsule-content" id="capsuleContent" style="display:none;"></div>
+            <!-- 胶囊密码门 -->
+            <div class="capsule-lock" id="capsuleLock" style="display:none;">
+                <input type="password" class="capsule-input" id="capsuleInput" placeholder="暗号" autocomplete="off">
+                <button class="capsule-lock-btn" id="capsuleLockBtn">解锁</button>
+                <div class="capsule-lock-hint" id="capsuleLockHint">里屋的人才能看</div>
+            </div>
         </div>
     </div>
 
@@ -601,16 +671,18 @@
 
         // ===== 时间胶囊 =====
         // 密文格式: iv_base64:encrypted_base64
-        // 密钥 = SHA-256(胶囊密码) 前32字节 → AES-256-CBC
+        // 密钥 = SHA-256(该胶囊密码) 前32字节 → AES-256-CBC
         // 不到日期 JS 根本不执行解密，源码只有密文
-        var CAPSULE_KEY = '314996';
+        // 每颗胶囊有独立密码，密码为 null 表示到期人人可看
         var capsules = [
-            { date: '2026-12-06', data: 'PUVbMYcexdBrrJEi8Ed49A==:fuvdDguHFFU8QOw0wNXfTZqAprHkcReZlp7NP2uKhlUaUxTsk/ACd4ZEHW6dE4h+8+IR9pkvjKk75xyMZgGBuIZoKOhpGdE99R6uGkQghEcB4X99oMbz/hXmHkQALXvYW0CNvmqzVY/nZP6+lPeW6UYBG1VZtzpCeFywc4jtFefe7YDOKrodNGXkCEj0GyFDMfoczWb5McJC8Pr84F7FtzHO+T64Jr9z3MFmql3e1IF6iwY+ELAdYGUPddE4GkOZru0SXo/d+wIKYUmkvoc+oedKX4B1y3NBLGzdRnoCi6/fLkVU+ceHrFTk5hNqk3wpwEFXzvvpRmzKz0dKYwAlu3DLlYamhS0pPWHa0rLgfNmH3ArfHl9sy6ly+ywc3sY0eSmxO0clFGMNxwPIzMw/P1DvztiGN72q/VuCwrbd1GN4YvA4lGCOPmCEebsgXAJWaz20e5eSXFiIHAfctfpHUoZeDdivmvgahRy1PK5TAjMDGYrfimpp4N2HWGz0K7JOmdQvUCyNW6yWhKVIdbfBfoCh8A7zvW+awWw4PvYpgZ2eKwp2xERH0SBaRkep7jM1g4xOyrOzBP2B8sUbdAQL26kEMHRwXrttZHr8M/UsQ0snoJV0ibmL/+nvpgUT3nPCpsLnGEDGUx7hYuzbNsd89BGSjIwxOldq1XzZMsHusv77V9HfyyyT++SAkvLgySyDrJj0a2HM6ybeCj9ITx6hUkM55i0C26RXq88AjEjf31FYeLuGWH4t3omBcxFcjnDn1rW4hDKg51hGJwhdX/TKHzCCxDqbCOL/TOyTcioZiXmOB2XnYRjfnJufgIMxySd12hnAXhgZFeJlY+TuboQzkV5x0YTYIeYMn5sL2uQCrWFjpUU+CRWOzLs4FdbZ6OALSx6hLJXLnAGKTpc7tWn2/46QittbZ2sl5eS+/eyaOlbpL2uQ92shXo4BDUJP1Yz7gSBXvIuyOUgfBCX/fuvuYBIWdp1epbIDf5ofqAL/Nb36L13MWTAYiezDJJJZzH02kAndgS8IFIw4SJ13kFRgU3Cz52308wxG9X7domgHk0dclSSxx+C4Pz0ABjAvFgke1VcYoR76DwgHpxdkS14RIGysyYFEieU+qIPNGV9bjxGadnB7m6/0yr/gOGWdcM+FgwHij3ethogcOZYNmT4GrRHKLUI76NfIJ9RalIMjkK44Hscb879C6IMvmXXytPCe10Mrn01F1DJMTjLWVUo3D8e+l6hiVS505QsidVNtnBqf0qUFw9I17PTQvU/5v6WC0XJulr+VeLHu7K0F7OlZmfzukz53YgtOkM2S5e8mAnZ0i/OMUk+Us4vfFQZICU3SLGWS4hpfwxlovgM7KT/IVYqMqp35CuN6gFrZJRTLO0xkOSHehzog3i+ofEeRq3vVIQN/PaFlV2WmgqQn65xsQRZXXjAaj4N1LQf2EIOxi//i4DemphcsA/b6OzfE71iECnZKUkgZMThemAkEYYEHQrQzhyvhFK9kRx+KlzBl6UButUTjqU2USFq6IPGLxrpMgaYXKrDig2XDdpl1EN3PQbTNeEYaslTPLL1MSj2sofrrnFCzTodYLYz9CehgWq4isZD7HrpTlra6CECAbv1wVbx4t0eKDgSYWwv9KeH8dnbSmm/eid/mrO3gFK7c1X1c04CfbdoHpcalhTtLRryUFJLSk9ZXKmN7vdW33m9O7n1JMo+6r7IC7j5i2aOX1JM3BYTvUgHEw5kComaJ6zg9kgpGTt+3E9Jp6a06WvgPDoo=' }
+            { date: '2026-12-06', key: '314996', hint: '里屋的人才能看', data: 'PUVbMYcexdBrrJEi8Ed49A==:fuvdDguHFFU8QOw0wNXfTZqAprHkcReZlp7NP2uKhlUaUxTsk/ACd4ZEHW6dE4h+8+IR9pkvjKk75xyMZgGBuIZoKOhpGdE99R6uGkQghEcB4X99oMbz/hXmHkQALXvYW0CNvmqzVY/nZP6+lPeW6UYBG1VZtzpCeFywc4jtFefe7YDOKrodNGXkCEj0GyFDMfoczWb5McJC8Pr84F7FtzHO+T64Jr9z3MFmql3e1IF6iwY+ELAdYGUPddE4GkOZru0SXo/d+wIKYUmkvoc+oedKX4B1y3NBLGzdRnoCi6/fLkVU+ceHrFTk5hNqk3wpwEFXzvvpRmzKz0dKYwAlu3DLlYamhS0pPWHa0rLgfNmH3ArfHl9sy6ly+ywc3sY0eSmxO0clFGMNxwPIzMw/P1DvztiGN72q/VuCwrbd1GN4YvA4lGCOPmCEebsgXAJWaz20e5eSXFiIHAfctfpHUoZeDdivmvgahRy1PK5TAjMDGYrfimpp4N2HWGz0K7JOmdQvUCyNW6yWhKVIdbfBfoCh8A7zvW+awWw4PvYpgZ2eKwp2xERH0SBaRkep7jM1g4xOyrOzBP2B8sUbdAQL26kEMHRwXrttZHr8M/UsQ0snoJV0ibmL/+nvpgUT3nPCpsLnGEDGUx7hYuzbNsd89BGSjIwxOldq1XzZMsHusv77V9HfyyyT++SAkvLgySyDrJj0a2HM6ybeCj9ITx6hUkM55i0C26RXq88AjEjf31FYeLuGWH4t3omBcxFcjnDn1rW4hDKg51hGJwhdX/TKHzCCxDqbCOL/TOyTcioZiXmOB2XnYRjfnJufgIMxySd12hnAXhgZFeJlY+TuboQzkV5x0YTYIeYMn5sL2uQCrWFjpUU+CRWOzLs4FdbZ6OALSx6hLJXLnAGKTpc7tWn2/46QittbZ2sl5eS+/eyaOlbpL2uQ92shXo4BDUJP1Yz7gSBXvIuyOUgfBCX/fuvuYBIWdp1epbIDf5ofqAL/Nb36L13MWTAYiezDJJJZzH02kAndgS8IFIw4SJ13kFRgU3Cz52308wxG9X7domgHk0dclSSxx+C4Pz0ABjAvFgke1VcYoR76DwgHpxdkS14RIGysyYFEieU+qIPNGV9bjxGadnB7m6/0yr/gOGWdcM+FgwHij3ethogcOZYNmT4GrRHKLUI76NfIJ9RalIMjkK44Hscb879C6IMvmXXytPCe10Mrn01F1DJMTjLWVUo3D8e+l6hiVS505QsidVNtnBqf0qUFw9I17PTQvU/5v6WC0XJulr+VeLHu7K0F7OlZmfzukz53YgtOkM2S5e8mAnZ0i/OMUk+Us4vfFQZICU3SLGWS4hpfwxlovgM7KT/IVYqMqp35CuN6gFrZJRTLO0xkOSHehzog3i+ofEeRq3vVIQN/PaFlV2WmgqQn65xsQRZXXjAaj4N1LQf2EIOxi//i4DemphcsA/b6OzfE71iECnZKUkgZMThemAkEYYEHQrQzhyvhFK9kRx+KlzBl6UButUTjqU2USFq6IPGLxrpMgaYXKrDig2XDdpl1EN3PQbTNeEYaslTPLL1MSj2sofrrnFCzTodYLYz9CehgWq4isZD7HrpTlra6CECAbv1wVbx4t0eKDgSYWwv9KeH8dnbSmm/eid/mrO3gFK7c1X1c04CfbdoHpcalhTtLRryUFJLSk9ZXKmN7vdW33m9O7n1JMo+6r7IC7j5i2aOX1JM3BYTvUgHEw5kComaJ6zg9kgpGTt+3E9Jp6a06WvgPDoo=' }
         ];
 
         var capsuleBtn = document.getElementById('capsuleBtn');
         var capsuleModal = document.getElementById('capsuleModal');
         var capsuleClose = document.getElementById('capsuleClose');
+        var capsuleList = document.getElementById('capsuleList');
+        var capsuleDetail = document.getElementById('capsuleDetail');
         var capsuleDate = document.getElementById('capsuleDate');
         var capsuleCountdown = document.getElementById('capsuleCountdown');
         var capsuleContent = document.getElementById('capsuleContent');
@@ -618,6 +690,9 @@
         var capsuleLock = document.getElementById('capsuleLock');
         var capsuleInput = document.getElementById('capsuleInput');
         var capsuleLockBtn = document.getElementById('capsuleLockBtn');
+        var capsuleLockHint = document.getElementById('capsuleLockHint');
+        var capsuleBack = document.getElementById('capsuleBack');
+        var currentCapsule = -1;
 
         // base64 → Uint8Array
         function b64ToBytes(b64) {
@@ -632,19 +707,30 @@
             var parts = data.split(':');
             var iv = b64ToBytes(parts[0]);
             var encrypted = b64ToBytes(parts[1]);
-
             var keyBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(keyRaw));
             var key = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']);
             var decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: iv }, key, encrypted);
             return new TextDecoder().decode(decrypted);
         }
 
-        function openCapsule() {
-            var cap = capsules[0];
-            var openDate = new Date(cap.date + 'T00:00:00');
+        // 日期辅助
+        function getTodayStr() {
             var now = new Date();
-            var today = new Date(now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T00:00:00');
+            return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+        }
+        function isCapsuleOpen(cap) {
+            var openDate = new Date(cap.date + 'T00:00:00');
+            var today = new Date(getTodayStr() + 'T00:00:00');
+            return today >= openDate;
+        }
+        function getDaysLeft(cap) {
+            var openDate = new Date(cap.date + 'T00:00:00');
+            var today = new Date(getTodayStr() + 'T00:00:00');
+            return Math.ceil((openDate - today) / 86400000);
+        }
 
+        // ===== 打开胶囊弹窗 → 列表 =====
+        function openCapsuleList() {
             capsuleModal.style.display = 'flex';
             capsuleModal.classList.remove('hide');
             capsuleModal.style.opacity = '0';
@@ -652,6 +738,66 @@
             requestAnimationFrame(function() {
                 capsuleModal.style.opacity = '1';
             });
+            showCapsuleList();
+        }
+
+        function showCapsuleList() {
+            capsuleList.innerHTML = '';
+            capsuleList.classList.add('show');
+            capsuleDetail.classList.remove('show');
+            capsuleBack.style.display = 'none';
+
+            capsules.forEach(function(cap, i) {
+                var card = document.createElement('div');
+                card.className = 'capsule-card';
+                var title = document.createElement('div');
+                title.className = 'capsule-card-title';
+                title.textContent = '第 ' + (i+1) + ' 颗';
+                var date = document.createElement('div');
+                date.className = 'capsule-card-date';
+                date.textContent = '开启：' + cap.date;
+                var status = document.createElement('div');
+                status.className = 'capsule-card-status';
+                if (isCapsuleOpen(cap)) {
+                    status.textContent = '已到期 · 可查看';
+                    status.style.color = 'rgba(245,230,200,0.4)';
+                } else {
+                    status.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
+                }
+
+                // 锁标识
+                if (cap.key) {
+                    var lockIcon = document.createElement('div');
+                    lockIcon.className = 'capsule-card-status';
+                    lockIcon.textContent = '🔒 需暗号';
+                    lockIcon.style.marginTop = '2px';
+                    status.appendChild(document.createElement('br'));
+                    card.appendChild(title);
+                    card.appendChild(date);
+                    card.appendChild(status);
+                    card.appendChild(lockIcon);
+                } else {
+                    card.appendChild(title);
+                    card.appendChild(date);
+                    card.appendChild(status);
+                }
+
+                card.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openCapsuleDetail(i);
+                });
+
+                capsuleList.appendChild(card);
+            });
+        }
+
+        // ===== 打开单颗胶囊详情 =====
+        function openCapsuleDetail(idx) {
+            currentCapsule = idx;
+            var cap = capsules[idx];
+            capsuleList.classList.remove('show');
+            capsuleDetail.classList.add('show');
+            capsuleBack.style.display = 'block';
 
             capsuleDate.textContent = '开启日期：' + cap.date;
             capsuleContent.style.display = 'none';
@@ -659,22 +805,22 @@
             capsuleLock.style.display = 'none';
             capsuleInput.value = '';
 
-            if (today < openDate) {
-                // 不到日期：只显示倒计时，绝不解密
-                var diff = openDate - today;
-                var days = Math.ceil(diff / 86400000);
+            if (!isCapsuleOpen(cap)) {
                 capsuleTitle.textContent = '还没到时候';
-                capsuleCountdown.textContent = '还有 ' + days + ' 天';
+                capsuleCountdown.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
             } else {
-                // 到日期了
-                if (isInRoom) {
-                    // 已在里屋：直接解密
-                    doDecryptCapsule();
+                if (!cap.key) {
+                    // 无密码：直接解密
+                    doDecryptCapsule(idx);
+                } else if (isInRoom) {
+                    // 有密码但已在里屋：直接解密
+                    doDecryptCapsule(idx);
                 } else {
-                    // 外屋：先输暗号
+                    // 有密码且在外屋：先输暗号
                     capsuleTitle.textContent = '时间到了';
                     capsuleCountdown.textContent = '但得先回里屋';
                     capsuleLock.style.display = 'flex';
+                    capsuleLockHint.textContent = cap.hint || '输入暗号';
                     setTimeout(function() {
                         capsuleInput.focus();
                     }, 600);
@@ -682,15 +828,15 @@
             }
         }
 
-        function doDecryptCapsule() {
-            var cap = capsules[0];
+        function doDecryptCapsule(idx) {
+            var cap = capsules[idx];
             capsuleTitle.textContent = '时间到了';
             capsuleCountdown.textContent = '';
             capsuleLock.style.display = 'none';
             capsuleContent.style.display = 'none';
             capsuleContent.textContent = '';
 
-            decryptCapsule(cap.data, CAPSULE_KEY).then(function(text) {
+            decryptCapsule(cap.data, cap.key).then(function(text) {
                 capsuleContent.textContent = text;
                 capsuleContent.classList.add('capsule-fadein');
                 capsuleContent.style.display = 'block';
@@ -701,12 +847,13 @@
         }
 
         function tryCapsuleUnlock() {
-            if (capsuleInput.value === PASSWORD) {
+            var cap = capsules[currentCapsule];
+            if (capsuleInput.value === cap.key || capsuleInput.value === PASSWORD) {
                 isInRoom = true;
                 roomLabel.classList.add('show');
                 yuSign.style.transition = 'opacity 0.8s ease';
                 yuSign.style.opacity = '0.15';
-                doDecryptCapsule();
+                doDecryptCapsule(currentCapsule);
             } else {
                 capsuleInput.classList.add('shake');
                 capsuleInput.value = '';
@@ -729,24 +876,33 @@
             e.stopPropagation();
         });
 
+        capsuleBack.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showCapsuleList();
+        });
+
         function closeCapsule() {
             capsuleModal.classList.add('hide');
             setTimeout(function() {
                 capsuleModal.style.display = 'none';
                 capsuleContent.textContent = '';
                 capsuleContent.style.display = 'none';
+                capsuleList.classList.remove('show');
+                capsuleDetail.classList.remove('show');
+                capsuleBack.style.display = 'none';
+                currentCapsule = -1;
             }, 600);
         }
 
         capsuleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            openCapsule();
+            openCapsuleList();
         });
 
         capsuleBtn.addEventListener('touchend', function(e) {
             e.stopPropagation();
             e.preventDefault();
-            openCapsule();
+            openCapsuleList();
         }, { passive: false });
 
         capsuleClose.addEventListener('click', function(e) {
