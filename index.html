@@ -516,6 +516,15 @@
         animate();
         window.addEventListener('resize', resize);
 
+        function resetHotspots() {
+            document.querySelectorAll('.hotspot-core').forEach(core => {
+                core.style.transition = '';
+                core.style.transform = '';
+                core.style.boxShadow = '';
+                core.style.animation = '';
+            });
+        }
+
         document.querySelectorAll('.hotspot').forEach(h => {
             h.addEventListener('click', (e) => {
                 const core = e.currentTarget.querySelector('.hotspot-core');
@@ -525,6 +534,11 @@
                     core.style.boxShadow = '0 0 50px rgba(255,255,255,1), 0 0 100px rgba(100,180,255,0.8)';
                 }
             });
+        });
+
+        // 返回页面时重置所有光点状态（解决 bfcache 导致内联样式残留）
+        window.addEventListener('pageshow', (e) => {
+            resetHotspots();
         });
     </script>
 
