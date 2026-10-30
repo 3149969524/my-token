@@ -407,62 +407,6 @@
         .admin-modal-box .admin-hint { text-align: center; color: var(--gray); font-size: 0.8rem; margin-top: 12px; }
         .admin-modal-box .admin-error { color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 8px; display: none; }
 
-        /* ===== 侧边留言浮窗 ===== */
-        .msg-float-btn {
-            position: fixed; right: 25px; bottom: 90px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: var(--gradient); color: var(--white);
-            border: none; font-size: 1.4rem; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
-            z-index: 998; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .msg-float-btn:hover { transform: scale(1.1); }
-
-        /* ===== 回到顶部按钮 ===== */
-        .back-to-top {
-            position: fixed; right: 25px; bottom: 155px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(26, 26, 46, 0.9);
-            color: #fff;
-            border: 2px solid rgba(255,255,255,0.15);
-            font-size: 1.3rem; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            z-index: 997; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transform: translateY(10px);
-        }
-        .back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        .back-to-top:hover { background: var(--gradient); border-color: transparent; transform: scale(1.1); }
-
-        .msg-sidebar {
-            position: fixed; top: 0; right: -380px;
-            width: 380px; max-width: 100vw; height: 100vh;
-            background: var(--white);
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.15);
-            z-index: 1001; transition: right 0.3s ease;
-            display: flex; flex-direction: column;
-        }
-        .msg-sidebar.open { right: 0; }
-        .msg-sidebar-header { padding: 20px; background: var(--gradient); color: var(--white); display: flex; justify-content: space-between; align-items: center; }
-        .msg-sidebar-header h3 { font-size: 1.2rem; }
-        .msg-sidebar-close { background: none; border: none; color: var(--white); font-size: 1.5rem; cursor: pointer; }
-        .msg-sidebar-body { flex: 1; overflow-y: auto; }
-
-        .msg-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1000; opacity: 0; visibility: hidden;
-            transition: all 0.3s;
-        }
-        .msg-overlay.show { opacity: 1; visibility: visible; }
-
-        @media (max-width: 768px) {
-            .banner h1 { font-size: 1.8rem; }
-            .msg-sidebar { width: 100vw; right: -100vw; }
-            .bottom-bar-text { font-size: 0.75rem; }
-        }
     </style>
 </head>
 <body>
@@ -496,11 +440,6 @@
             <button class="message-submit-btn" id="boardSubmit">发布留言 ✈</button>
         </div>
         <div class="message-count" id="msgCount"></div>
-        <div style="text-align:center; margin-bottom:12px;">
-            <button id="manualRefreshBtn" style="background:var(--primary); color:#fff; border:none; padding:6px 20px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:all 0.2s;">🔄 刷新</button>
-            <span id="liveDot" style="display:inline-block; width:8px; height:8px; background:#2ecc71; border-radius:50%; margin-left:10px; vertical-align:middle; animation:pulse 1.5s infinite;"></span>
-            <span style="color:var(--gray); font-size:0.75rem; vertical-align:middle;">实时更新中</span>
-        </div>
         <!-- 管理员搜索栏 -->
         <div class="admin-search-bar" id="adminSearchBar">
             <input type="text" id="adminSearchInput" placeholder="🔍 输入关键字搜索留言（昵称或内容）..." maxlength="30">
@@ -542,31 +481,6 @@
             <button class="message-submit-btn" id="adminLoginBtn" style="width:100%;">验证身份</button>
             <p class="admin-error" id="adminError">密码错误，请重试</p>
             <p class="admin-hint">仅管理员可删除留言</p>
-        </div>
-    </div>
-
-    <!-- ===== 侧边介绍浮窗 ===== -->
-    <button class="back-to-top" id="backToTopBtn" title="回到顶部">↑</button>
-    <button class="msg-float-btn" id="msgFloatBtn" title="网页介绍">ℹ️</button>
-    <div class="msg-overlay" id="msgOverlay"></div>
-    <div class="msg-sidebar" id="msgSidebar">
-        <div class="msg-sidebar-header">
-            <h3>📋 网页介绍</h3>
-            <button class="msg-sidebar-close" id="msgCloseBtn">✕</button>
-        </div>
-        <div class="msg-sidebar-body" id="sidebarList" style="padding:30px 24px; line-height:1.8;">
-            <div style="text-align:center; margin-bottom:24px;">
-                <div style="font-size:3rem; margin-bottom:12px;">💬</div>
-                <h2 style="color:var(--dark); font-size:1.4rem; margin:0;">留言板</h2>
-            </div>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">本页面你可以留言给任何人。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">无论是想对朋友说的话、对某人的感谢、或者是一段匿名告白，都可以在这里留下你的足迹。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">📝 在下方输入区域填写昵称和留言内容，点击发布即可。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🔄 页面每 <b>5秒</b> 自动刷新一次，你发送的留言会实时显示给所有人。</p>
-            <p style="color:#555; font-size:0.95rem; margin-bottom:16px;">🟢 绿色圆点闪烁表示实时更新中。</p>
-            <div style="margin-top:24px; padding-top:20px; border-top:1px solid #eee; text-align:center;">
-                <p style="color:var(--gray); font-size:0.8rem;">✨ 留言板 · 永久在线</p>
-            </div>
         </div>
     </div>
 
@@ -1242,42 +1156,6 @@
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 document.getElementById('boardSubmit').click();
             }
-        });
-
-        // ===== 刷新按钮 =====
-        document.getElementById('manualRefreshBtn').addEventListener('click', function() {
-            this.textContent = '刷新中...';
-            var self = this;
-            fetchMessages().then(function() {
-                setTimeout(function() { self.textContent = '🔄 刷新'; }, 500);
-            });
-        });
-
-        // ===== 侧边浮窗 =====
-        document.getElementById('msgFloatBtn').addEventListener('click', function() {
-            document.getElementById('msgSidebar').classList.add('open');
-            document.getElementById('msgOverlay').classList.add('show');
-        });
-        document.getElementById('msgCloseBtn').addEventListener('click', function() {
-            document.getElementById('msgSidebar').classList.remove('open');
-            document.getElementById('msgOverlay').classList.remove('show');
-        });
-        document.getElementById('msgOverlay').addEventListener('click', function() {
-            document.getElementById('msgSidebar').classList.remove('open');
-            document.getElementById('msgOverlay').classList.remove('show');
-        });
-
-        // ===== 回到顶部按钮 =====
-        var backToTopBtn = document.getElementById('backToTopBtn');
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
-                backToTopBtn.classList.add('show');
-            } else {
-                backToTopBtn.classList.remove('show');
-            }
-        });
-        backToTopBtn.addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         // ===== 初始化 =====
