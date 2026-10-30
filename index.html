@@ -55,6 +55,12 @@
             100% { transform: translate(30px, 30px); }
         }
 
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         .banner-content { position: relative; z-index: 2; }
         .banner h1 { font-size: 2.5rem; margin-bottom: 10px; }
         .banner p { font-size: 1.1rem; opacity: 0.9; }
@@ -288,6 +294,11 @@
             <button class="message-submit-btn" id="boardSubmit">发布留言 ✈</button>
         </div>
         <div class="message-count" id="msgCount"></div>
+        <div style="text-align:center; margin-bottom:12px;">
+            <button id="manualRefreshBtn" style="background:var(--primary); color:#fff; border:none; padding:6px 20px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:all 0.2s;">🔄 刷新</button>
+            <span id="liveDot" style="display:inline-block; width:8px; height:8px; background:#2ecc71; border-radius:50%; margin-left:10px; vertical-align:middle; animation:pulse 1.5s infinite;"></span>
+            <span style="color:var(--gray); font-size:0.75rem; vertical-align:middle;">实时更新中</span>
+        </div>
         <div class="messages-list" id="boardList">
             <div class="message-empty">留言加载中... ⏳</div>
         </div>
@@ -782,8 +793,10 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
         // ===== 初始化 =====
         updateAdminUI();
         fetchMessages();  // fetchMessages内部已经会调fetchFromAPI获取SHA和最新数据
+        
+        // 5秒快速轮询，实时获取新留言
         setInterval(function() {
-            if (isPublishing) return; // 正在操作时跳过，避免覆盖
+            if (isPublishing) return;
             fetchFromAPI().then(function(data) {
                 if (data) {
                     lastSha = data.sha;
@@ -791,7 +804,25 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
                     renderMessages(lastMessages);
                 }
             });
-        }, 20000);
+        }, 5000);
+        
+        // 页面从后台切回前台时立即刷新
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && !isPublishing) {
+                fetchMessages();
+            }
+        });
+        
+        // 手动刷新按钮
+        document.getElementById('manualRefreshBtn').addEventListener('click', function() {
+            if (isPublishing) { showToast('正在操作中，请稍等...'); return; }
+            this.style.opacity = '0.6';
+            var self = this;
+            fetchMessages().then(function() {
+                self.style.opacity = '1';
+                showToast('已刷新 ✅');
+            });
+        });
     </script>
 </body>
 </html>
