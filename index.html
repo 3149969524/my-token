@@ -195,8 +195,8 @@
         /* ===== 标题 ===== */
         .title-zone {
             position: fixed;
-            top: 62%; left: 50%;
-            transform: translate(-50%, -50%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, calc(-50% + 60px));
             z-index: 6;
             text-align: center;
             pointer-events: none;
@@ -276,7 +276,7 @@
             .nav-links { gap: 10px; }
             .nav-links a { font-size: 0.66rem; }
             .nav-logo { font-size: 0.78rem; }
-            .title-zone { top: 58%; }
+            .title-zone { top: 50%; transform: translate(-50%, calc(-50% + 45px)); }
         }
     </style>
 </head>
