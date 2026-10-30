@@ -541,10 +541,11 @@
 
         // ===== 时间胶囊 =====
         // 密文格式: iv_base64:encrypted_base64
-        // 密钥 = SHA-256(暗号) 前32字节 → AES-256-CBC
+        // 密钥 = SHA-256(胶囊密码) 前32字节 → AES-256-CBC
         // 不到日期 JS 根本不执行解密，源码只有密文
+        var CAPSULE_KEY = '314996';
         var capsules = [
-            { date: '2026-12-06', data: '2wkc1fk1YFwiAxjBtBJSvA==:qIPJX6x5jsyM5XJF0MSRiOYRSL2ScRSl9MmBnIyED+Y=' }
+            { date: '2026-12-06', data: 'PUVbMYcexdBrrJEi8Ed49A==:fuvdDguHFFU8QOw0wNXfTZqAprHkcReZlp7NP2uKhlUaUxTsk/ACd4ZEHW6dE4h+8+IR9pkvjKk75xyMZgGBuIZoKOhpGdE99R6uGkQghEcB4X99oMbz/hXmHkQALXvYW0CNvmqzVY/nZP6+lPeW6UYBG1VZtzpCeFywc4jtFefe7YDOKrodNGXkCEj0GyFDMfoczWb5McJC8Pr84F7FtzHO+T64Jr9z3MFmql3e1IF6iwY+ELAdYGUPddE4GkOZru0SXo/d+wIKYUmkvoc+oedKX4B1y3NBLGzdRnoCi6/fLkVU+ceHrFTk5hNqk3wpwEFXzvvpRmzKz0dKYwAlu3DLlYamhS0pPWHa0rLgfNmH3ArfHl9sy6ly+ywc3sY0eSmxO0clFGMNxwPIzMw/P1DvztiGN72q/VuCwrbd1GN4YvA4lGCOPmCEebsgXAJWaz20e5eSXFiIHAfctfpHUoZeDdivmvgahRy1PK5TAjMDGYrfimpp4N2HWGz0K7JOmdQvUCyNW6yWhKVIdbfBfoCh8A7zvW+awWw4PvYpgZ2eKwp2xERH0SBaRkep7jM1g4xOyrOzBP2B8sUbdAQL26kEMHRwXrttZHr8M/UsQ0snoJV0ibmL/+nvpgUT3nPCpsLnGEDGUx7hYuzbNsd89BGSjIwxOldq1XzZMsHusv77V9HfyyyT++SAkvLgySyDrJj0a2HM6ybeCj9ITx6hUkM55i0C26RXq88AjEjf31FYeLuGWH4t3omBcxFcjnDn1rW4hDKg51hGJwhdX/TKHzCCxDqbCOL/TOyTcioZiXmOB2XnYRjfnJufgIMxySd12hnAXhgZFeJlY+TuboQzkV5x0YTYIeYMn5sL2uQCrWFjpUU+CRWOzLs4FdbZ6OALSx6hLJXLnAGKTpc7tWn2/46QittbZ2sl5eS+/eyaOlbpL2uQ92shXo4BDUJP1Yz7gSBXvIuyOUgfBCX/fuvuYBIWdp1epbIDf5ofqAL/Nb36L13MWTAYiezDJJJZzH02kAndgS8IFIw4SJ13kFRgU3Cz52308wxG9X7domgHk0dclSSxx+C4Pz0ABjAvFgke1VcYoR76DwgHpxdkS14RIGysyYFEieU+qIPNGV9bjxGadnB7m6/0yr/gOGWdcM+FgwHij3ethogcOZYNmT4GrRHKLUI76NfIJ9RalIMjkK44Hscb879C6IMvmXXytPCe10Mrn01F1DJMTjLWVUo3D8e+l6hiVS505QsidVNtnBqf0qUFw9I17PTQvU/5v6WC0XJulr+VeLHu7K0F7OlZmfzukz53YgtOkM2S5e8mAnZ0i/OMUk+Us4vfFQZICU3SLGWS4hpfwxlovgM7KT/IVYqMqp35CuN6gFrZJRTLO0xkOSHehzog3i+ofEeRq3vVIQN/PaFlV2WmgqQn65xsQRZXXjAaj4N1LQf2EIOxi//i4DemphcsA/b6OzfE71iECnZKUkgZMThemAkEYYEHQrQzhyvhFK9kRx+KlzBl6UButUTjqU2USFq6IPGLxrpMgaYXKrDig2XDdpl1EN3PQbTNeEYaslTPLL1MSj2sofrrnFCzTodYLYz9CehgWq4isZD7HrpTlra6CECAbv1wVbx4t0eKDgSYWwv9KeH8dnbSmm/eid/mrO3gFK7c1X1c04CfbdoHpcalhTtLRryUFJLSk9ZXKmN7vdW33m9O7n1JMo+6r7IC7j5i2aOX1JM3BYTvUgHEw5kComaJ6zg9kgpGTt+3E9Jp6a06WvgPDoo=' }
         ];
 
         var capsuleBtn = document.getElementById('capsuleBtn');
@@ -605,7 +606,7 @@
                 capsuleContent.style.display = 'none';
                 capsuleContent.textContent = '';
 
-                decryptCapsule(cap.data, PASSWORD).then(function(text) {
+                decryptCapsule(cap.data, CAPSULE_KEY).then(function(text) {
                     capsuleContent.textContent = text;
                     capsuleContent.classList.add('capsule-fadein');
                     capsuleContent.style.display = 'block';
