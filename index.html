@@ -431,7 +431,7 @@
                 vx = -speed * 0.75; vy = -speed * 0.75;
             }
 
-            shootingStars.push({ x, y, vx, vy, life: 1, trail: [], ripples: [], rippleTimer: 0 });
+            shootingStars.push({ x, y, vx, vy, life: 1, trail: [], ripples: [], rippleTimer: 0, shocks: [], shockTimer: 0 });
         }
 
         function drawCanvas() {
@@ -555,6 +555,56 @@
 
                     rp.life -= 0.025;
                     if (rp.life <= 0) ss.ripples.splice(k, 1);
+                }
+
+                // ===== 冲破气浪效果 =====
+                ss.shockTimer++;
+                if (ss.shockTimer % 4 === 0 && ss.life > 0.25) {
+                    const angle = Math.atan2(ss.vy, ss.vx);
+                    ss.shocks.push({ x: ss.x, y: ss.y, life: 1, angle: angle });
+                }
+
+                for (let k = ss.shocks.length - 1; k >= 0; k--) {
+                    const sh = ss.shocks[k];
+                    const sLife = sh.life;
+                    const sRadius = (1 - sLife) * 18 + 4;
+
+                    ctx.save();
+                    ctx.translate(sh.x, sh.y);
+                    ctx.rotate(sh.angle);
+
+                    // 弓形激波前缘（前方亮弧）
+                    const bowR = sRadius * 1.2;
+                    ctx.lineWidth = 1.8 * sLife;
+                    ctx.strokeStyle = `rgba(180,220,255,${sLife * 0.35})`;
+                    ctx.beginPath();
+                    ctx.ellipse(-sRadius * 0.3, 0, bowR, bowR * 0.7, 0, -Math.PI * 0.75, -Math.PI * 0.25);
+                    ctx.stroke();
+
+                    // 两侧气浪扩散（向后展开的翼形弧）
+                    ctx.lineWidth = 1.2 * sLife;
+                    ctx.strokeStyle = `rgba(120,180,255,${sLife * 0.22})`;
+                    ctx.beginPath();
+                    ctx.ellipse(-sRadius * 0.5, 0, sRadius * 1.8, sRadius * 1.1, 0, -Math.PI * 0.88, -Math.PI * 0.62);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.ellipse(-sRadius * 0.5, 0, sRadius * 1.8, sRadius * 1.1, 0, -Math.PI * 0.38, -Math.PI * 0.12);
+                    ctx.stroke();
+
+                    // 更远层气浪尾迹（最淡的扩散翼）
+                    ctx.lineWidth = 0.8 * sLife;
+                    ctx.strokeStyle = `rgba(100,160,230,${sLife * 0.12})`;
+                    ctx.beginPath();
+                    ctx.ellipse(-sRadius * 0.8, 0, sRadius * 2.6, sRadius * 1.5, 0, -Math.PI * 0.9, -Math.PI * 0.6);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.ellipse(-sRadius * 0.8, 0, sRadius * 2.6, sRadius * 1.5, 0, -Math.PI * 0.4, -Math.PI * 0.1);
+                    ctx.stroke();
+
+                    ctx.restore();
+
+                    sh.life -= 0.04;
+                    if (sh.life <= 0) ss.shocks.splice(k, 1);
                 }
 
                 for (let j = 0; j < ss.trail.length; j++) {
