@@ -198,7 +198,13 @@
         }
         .admin-modal.show .admin-modal-box { transform: translateY(0); }
 
-        .admin-modal-box h3 { text-align: center; margin-bottom: 20px; font-size: 1.3rem; }
+        .admin-modal-box h3 { text-align: center; margin-bottom: 20px; font-size: 1.3rem; padding-right: 30px; }
+        .admin-close-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; font-size: 1.4rem;
+            color: #999; cursor: pointer; line-height: 1;
+        }
+        .admin-close-btn:hover { color: #e74c3c; }
         .admin-modal-box input {
             width: 100%; padding: 12px 16px;
             border: 2px solid #e0e0e0; border-radius: 10px;
@@ -294,7 +300,8 @@
 
     <!-- ===== 管理员登录弹窗 ===== -->
     <div class="admin-modal" id="adminModal">
-        <div class="admin-modal-box">
+        <div class="admin-modal-box" style="position:relative;">
+            <button class="admin-close-btn" id="adminCloseBtn">✕</button>
             <h3>🔒 管理员验证</h3>
             <input type="password" id="adminPwdInput" placeholder="请输入管理员密码" maxlength="30">
             <button class="message-submit-btn" id="adminLoginBtn" style="width:100%;">验证身份</button>
@@ -626,6 +633,11 @@
             if (e.key === 'Enter') adminLogin();
         });
         document.getElementById('adminLogoutBtn').addEventListener('click', adminLogout);
+        document.getElementById('adminCloseBtn').addEventListener('click', function() {
+            document.getElementById('adminModal').classList.remove('show');
+            document.getElementById('adminPwdInput').value = '';
+            document.getElementById('adminError').style.display = 'none';
+        });
         // 管理员弹窗只能通过按钮关闭，点空白不关闭
 
         // ===== 页脚连点5次激活管理员登录 =====
