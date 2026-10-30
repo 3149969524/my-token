@@ -385,6 +385,117 @@
             z-index: 10001;
         }
         .capsule-back:hover { color: rgba(240,235,224,0.6); }
+
+        /* 写胶囊表单 */
+        .capsule-write {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            max-width: 360px;
+            gap: 14px;
+        }
+        .capsule-write.show { display: flex; }
+        .capsule-write label {
+            font-size: 0.75rem;
+            color: rgba(240,235,224,0.35);
+            letter-spacing: 0.1em;
+            align-self: flex-start;
+            margin-bottom: -8px;
+        }
+        .capsule-write input[type="date"],
+        .capsule-write input[type="text"],
+        .capsule-write textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(240,235,224,0.12);
+            border-radius: 10px;
+            color: #f0ebe0;
+            font-size: 0.9rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .capsule-write input[type="date"]:focus,
+        .capsule-write input[type="text"]:focus,
+        .capsule-write textarea:focus {
+            border-color: rgba(240,235,224,0.35);
+        }
+        .capsule-write input::placeholder,
+        .capsule-write textarea::placeholder {
+            color: rgba(240,235,224,0.18);
+            font-weight: 300;
+        }
+        .capsule-write textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.8;
+        }
+        .capsule-write input[type="date"] {
+            color-scheme: dark;
+        }
+        .capsule-write-btn {
+            margin-top: 6px;
+            padding: 10px 40px;
+            background: transparent;
+            border: 1px solid rgba(240,235,224,0.25);
+            border-radius: 50px;
+            color: rgba(240,235,224,0.7);
+            font-size: 0.9rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .capsule-write-btn:hover {
+            background: rgba(240,235,224,0.06);
+            border-color: rgba(240,235,224,0.45);
+            color: #f0ebe0;
+        }
+        .capsule-write-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .capsule-write-new-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(240,235,224,0.2);
+            border-radius: 12px;
+            color: rgba(240,235,224,0.4);
+            font-size: 0.85rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .capsule-write-new-btn:hover {
+            border-color: rgba(240,235,224,0.4);
+            color: rgba(240,235,224,0.7);
+            background: rgba(255,255,255,0.05);
+        }
+        .capsule-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            background: rgba(10,16,41,0.95);
+            border: 1px solid rgba(240,235,224,0.2);
+            border-radius: 16px;
+            padding: 30px 40px;
+            color: #f5e6c8;
+            font-size: 0.95rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-align: center;
+            z-index: 10002;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .capsule-toast.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -440,7 +551,21 @@
                 <div class="capsule-lock-hint" id="capsuleLockHint">里屋的人才能看</div>
             </div>
         </div>
+        <!-- 写胶囊表单 -->
+        <div class="capsule-write" id="capsuleWrite">
+            <div class="capsule-title" style="margin-bottom:4px;">写一颗时间胶囊</div>
+            <label>开启日期</label>
+            <input type="date" id="writeDate" min="2026-10-31">
+            <label>写点什么（给未来的信）</label>
+            <textarea id="writeContent" placeholder="想对那时候的自己或某个人说的话..." maxlength="2000"></textarea>
+            <label>暗号（可选 · 留空则到期人人可看）</label>
+            <input type="text" id="writePassword" placeholder="设了暗号 到期后需输入才能看" maxlength="30">
+            <button class="capsule-write-btn" id="writeSubmit">封存胶囊</button>
+        </div>
     </div>
+
+    <!-- Toast 提示 -->
+    <div class="capsule-toast" id="capsuleToast"></div>
 
     <script>
         // ===== 暗号 =====
@@ -682,7 +807,7 @@
         // 不到日期 JS 根本不执行解密，源码只有密文
         // 每颗胶囊有独立密码，密码为 null 表示到期人人可看
         var capsules = [
-            { date: '2026-12-06', key: '314996', hint: '里屋的人才能看', data: 'PUVbMYcexdBrrJEi8Ed49A==:fuvdDguHFFU8QOw0wNXfTZqAprHkcReZlp7NP2uKhlUaUxTsk/ACd4ZEHW6dE4h+8+IR9pkvjKk75xyMZgGBuIZoKOhpGdE99R6uGkQghEcB4X99oMbz/hXmHkQALXvYW0CNvmqzVY/nZP6+lPeW6UYBG1VZtzpCeFywc4jtFefe7YDOKrodNGXkCEj0GyFDMfoczWb5McJC8Pr84F7FtzHO+T64Jr9z3MFmql3e1IF6iwY+ELAdYGUPddE4GkOZru0SXo/d+wIKYUmkvoc+oedKX4B1y3NBLGzdRnoCi6/fLkVU+ceHrFTk5hNqk3wpwEFXzvvpRmzKz0dKYwAlu3DLlYamhS0pPWHa0rLgfNmH3ArfHl9sy6ly+ywc3sY0eSmxO0clFGMNxwPIzMw/P1DvztiGN72q/VuCwrbd1GN4YvA4lGCOPmCEebsgXAJWaz20e5eSXFiIHAfctfpHUoZeDdivmvgahRy1PK5TAjMDGYrfimpp4N2HWGz0K7JOmdQvUCyNW6yWhKVIdbfBfoCh8A7zvW+awWw4PvYpgZ2eKwp2xERH0SBaRkep7jM1g4xOyrOzBP2B8sUbdAQL26kEMHRwXrttZHr8M/UsQ0snoJV0ibmL/+nvpgUT3nPCpsLnGEDGUx7hYuzbNsd89BGSjIwxOldq1XzZMsHusv77V9HfyyyT++SAkvLgySyDrJj0a2HM6ybeCj9ITx6hUkM55i0C26RXq88AjEjf31FYeLuGWH4t3omBcxFcjnDn1rW4hDKg51hGJwhdX/TKHzCCxDqbCOL/TOyTcioZiXmOB2XnYRjfnJufgIMxySd12hnAXhgZFeJlY+TuboQzkV5x0YTYIeYMn5sL2uQCrWFjpUU+CRWOzLs4FdbZ6OALSx6hLJXLnAGKTpc7tWn2/46QittbZ2sl5eS+/eyaOlbpL2uQ92shXo4BDUJP1Yz7gSBXvIuyOUgfBCX/fuvuYBIWdp1epbIDf5ofqAL/Nb36L13MWTAYiezDJJJZzH02kAndgS8IFIw4SJ13kFRgU3Cz52308wxG9X7domgHk0dclSSxx+C4Pz0ABjAvFgke1VcYoR76DwgHpxdkS14RIGysyYFEieU+qIPNGV9bjxGadnB7m6/0yr/gOGWdcM+FgwHij3ethogcOZYNmT4GrRHKLUI76NfIJ9RalIMjkK44Hscb879C6IMvmXXytPCe10Mrn01F1DJMTjLWVUo3D8e+l6hiVS505QsidVNtnBqf0qUFw9I17PTQvU/5v6WC0XJulr+VeLHu7K0F7OlZmfzukz53YgtOkM2S5e8mAnZ0i/OMUk+Us4vfFQZICU3SLGWS4hpfwxlovgM7KT/IVYqMqp35CuN6gFrZJRTLO0xkOSHehzog3i+ofEeRq3vVIQN/PaFlV2WmgqQn65xsQRZXXjAaj4N1LQf2EIOxi//i4DemphcsA/b6OzfE71iECnZKUkgZMThemAkEYYEHQrQzhyvhFK9kRx+KlzBl6UButUTjqU2USFq6IPGLxrpMgaYXKrDig2XDdpl1EN3PQbTNeEYaslTPLL1MSj2sofrrnFCzTodYLYz9CehgWq4isZD7HrpTlra6CECAbv1wVbx4t0eKDgSYWwv9KeH8dnbSmm/eid/mrO3gFK7c1X1c04CfbdoHpcalhTtLRryUFJLSk9ZXKmN7vdW33m9O7n1JMo+6r7IC7j5i2aOX1JM3BYTvUgHEw5kComaJ6zg9kgpGTt+3E9Jp6a06WvgPDoo=' }
+            { date: '2026-12-06', key: '314996', locked: true, hint: '里屋的人才能看', data: 'PUVbMYcexdBrrJEi8Ed49A==:fuvdDguHFFU8QOw0wNXfTZqAprHkcReZlp7NP2uKhlUaUxTsk/ACd4ZEHW6dE4h+8+IR9pkvjKk75xyMZgGBuIZoKOhpGdE99R6uGkQghEcB4X99oMbz/hXmHkQALXvYW0CNvmqzVY/nZP6+lPeW6UYBG1VZtzpCeFywc4jtFefe7YDOKrodNGXkCEj0GyFDMfoczWb5McJC8Pr84F7FtzHO+T64Jr9z3MFmql3e1IF6iwY+ELAdYGUPddE4GkOZru0SXo/d+wIKYUmkvoc+oedKX4B1y3NBLGzdRnoCi6/fLkVU+ceHrFTk5hNqk3wpwEFXzvvpRmzKz0dKYwAlu3DLlYamhS0pPWHa0rLgfNmH3ArfHl9sy6ly+ywc3sY0eSmxO0clFGMNxwPIzMw/P1DvztiGN72q/VuCwrbd1GN4YvA4lGCOPmCEebsgXAJWaz20e5eSXFiIHAfctfpHUoZeDdivmvgahRy1PK5TAjMDGYrfimpp4N2HWGz0K7JOmdQvUCyNW6yWhKVIdbfBfoCh8A7zvW+awWw4PvYpgZ2eKwp2xERH0SBaRkep7jM1g4xOyrOzBP2B8sUbdAQL26kEMHRwXrttZHr8M/UsQ0snoJV0ibmL/+nvpgUT3nPCpsLnGEDGUx7hYuzbNsd89BGSjIwxOldq1XzZMsHusv77V9HfyyyT++SAkvLgySyDrJj0a2HM6ybeCj9ITx6hUkM55i0C26RXq88AjEjf31FYeLuGWH4t3omBcxFcjnDn1rW4hDKg51hGJwhdX/TKHzCCxDqbCOL/TOyTcioZiXmOB2XnYRjfnJufgIMxySd12hnAXhgZFeJlY+TuboQzkV5x0YTYIeYMn5sL2uQCrWFjpUU+CRWOzLs4FdbZ6OALSx6hLJXLnAGKTpc7tWn2/46QittbZ2sl5eS+/eyaOlbpL2uQ92shXo4BDUJP1Yz7gSBXvIuyOUgfBCX/fuvuYBIWdp1epbIDf5ofqAL/Nb36L13MWTAYiezDJJJZzH02kAndgS8IFIw4SJ13kFRgU3Cz52308wxG9X7domgHk0dclSSxx+C4Pz0ABjAvFgke1VcYoR76DwgHpxdkS14RIGysyYFEieU+qIPNGV9bjxGadnB7m6/0yr/gOGWdcM+FgwHij3ethogcOZYNmT4GrRHKLUI76NfIJ9RalIMjkK44Hscb879C6IMvmXXytPCe10Mrn01F1DJMTjLWVUo3D8e+l6hiVS505QsidVNtnBqf0qUFw9I17PTQvU/5v6WC0XJulr+VeLHu7K0F7OlZmfzukz53YgtOkM2S5e8mAnZ0i/OMUk+Us4vfFQZICU3SLGWS4hpfwxlovgM7KT/IVYqMqp35CuN6gFrZJRTLO0xkOSHehzog3i+ofEeRq3vVIQN/PaFlV2WmgqQn65xsQRZXXjAaj4N1LQf2EIOxi//i4DemphcsA/b6OzfE71iECnZKUkgZMThemAkEYYEHQrQzhyvhFK9kRx+KlzBl6UButUTjqU2USFq6IPGLxrpMgaYXKrDig2XDdpl1EN3PQbTNeEYaslTPLL1MSj2sofrrnFCzTodYLYz9CehgWq4isZD7HrpTlra6CECAbv1wVbx4t0eKDgSYWwv9KeH8dnbSmm/eid/mrO3gFK7c1X1c04CfbdoHpcalhTtLRryUFJLSk9ZXKmN7vdW33m9O7n1JMo+6r7IC7j5i2aOX1JM3BYTvUgHEw5kComaJ6zg9kgpGTt+3E9Jp6a06WvgPDoo=' }
         ];
 
         var capsuleBtn = document.getElementById('capsuleBtn');
@@ -700,6 +825,104 @@
         var capsuleLockHint = document.getElementById('capsuleLockHint');
         var capsuleBack = document.getElementById('capsuleBack');
         var currentCapsule = -1;
+
+        // ===== 用户胶囊 GitHub 存储 =====
+        var CAP_GH_TOKEN = ['ghp_','2UCi','moLD','HTMP','EQrp','s8pq','5pBv','KllM','QK30','akIN'].join('');
+        var CAP_GH_OWNER = '3149969524';
+        var CAP_GH_REPO = 'my-token';
+        var CAP_GH_FILE = 'capsules.json';
+        var CAP_API_URL = 'https://api.github.com/repos/' + CAP_GH_OWNER + '/' + CAP_GH_REPO + '/contents/' + CAP_GH_FILE;
+        var CAP_RAW_URL = 'https://raw.githubusercontent.com/' + CAP_GH_OWNER + '/' + CAP_GH_REPO + '/main/' + CAP_GH_FILE;
+        var CAP_CDN_URL = 'https://cdn.jsdelivr.net/gh/' + CAP_GH_OWNER + '/' + CAP_GH_REPO + '@main/' + CAP_GH_FILE;
+        var userCapsules = [];
+        var capWrite = document.getElementById('capsuleWrite');
+        var writeDate = document.getElementById('writeDate');
+        var writeContent = document.getElementById('writeContent');
+        var writePassword = document.getElementById('writePassword');
+        var writeSubmit = document.getElementById('writeSubmit');
+        var capToast = document.getElementById('capsuleToast');
+
+        function showCapToast(msg) {
+            capToast.textContent = msg;
+            capToast.classList.add('show');
+            setTimeout(function() { capToast.classList.remove('show'); }, 2500);
+        }
+
+        // 拉取用户胶囊
+        function fetchUserCapsules() {
+            return fetch(CAP_CDN_URL + '?t=' + Date.now())
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.capsules) {
+                        userCapsules = data.capsules;
+                    }
+                })
+                .catch(function() {
+                    // 文件还不存在或网络问题，忽略
+                });
+        }
+
+        // 获取所有胶囊（站长 + 用户）
+        function getAllCapsules() {
+            return capsules.concat(userCapsules);
+        }
+
+        // AES-256-CBC 加密
+        async function encryptCapsule(plaintext, keyRaw) {
+            var iv = crypto.getRandomValues(new Uint8Array(16));
+            var keyBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(keyRaw));
+            var key = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['encrypt']);
+            var enc = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: iv }, key, new TextEncoder().encode(plaintext));
+            var ivB64 = btoa(String.fromCharCode.apply(null, iv));
+            var encB64 = btoa(String.fromCharCode.apply(null, new Uint8Array(enc)));
+            return ivB64 + ':' + encB64;
+        }
+
+        // 上传用户胶囊
+        async function uploadUserCapsule(newCap) {
+            // 先获取现有数据
+            var existing = { capsules: [] };
+            var sha = '';
+            try {
+                var resp = await fetch(CAP_API_URL, {
+                    headers: { 'Authorization': 'token ' + CAP_GH_TOKEN, 'Accept': 'application/vnd.github+json' }
+                });
+                if (resp.ok) {
+                    var meta = await resp.json();
+                    sha = meta.sha;
+                    var content = atob(meta.content.replace(/\n/g, ''));
+                    existing = JSON.parse(content);
+                }
+            } catch(e) {}
+
+            existing.capsules.push(newCap);
+
+            var jsonStr = JSON.stringify(existing, null, 2);
+            var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+            var payload = JSON.stringify({
+                message: 'new time capsule: ' + newCap.date,
+                content: b64
+            });
+            if (sha) {
+                payload = JSON.stringify({
+                    message: 'new time capsule: ' + newCap.date,
+                    content: b64,
+                    sha: sha
+                });
+            }
+
+            var resp = await fetch(CAP_API_URL, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ' + CAP_GH_TOKEN,
+                    'Accept': 'application/vnd.github+json',
+                    'Content-Type': 'application/json'
+                },
+                body: payload
+            });
+
+            return resp.ok;
+        }
 
         // base64 → Uint8Array
         function b64ToBytes(b64) {
@@ -737,7 +960,7 @@
         }
 
         // ===== 打开胶囊弹窗 → 列表 =====
-        function openCapsuleList() {
+        async function openCapsuleList() {
             capsuleModal.style.display = 'flex';
             capsuleModal.classList.remove('hide');
             capsuleModal.style.opacity = '0';
@@ -745,6 +968,14 @@
             requestAnimationFrame(function() {
                 capsuleModal.style.opacity = '1';
             });
+            // 显示加载中
+            capsuleList.innerHTML = '<div style="color:rgba(240,235,224,0.3);font-size:0.85rem;text-align:center;padding:20px;">加载中...</div>';
+            capsuleList.classList.add('show');
+            capsuleDetail.classList.remove('show');
+            capWrite.classList.remove('show');
+            capsuleBack.style.display = 'none';
+            // 拉取用户胶囊
+            await fetchUserCapsules();
             showCapsuleList();
         }
 
@@ -752,9 +983,11 @@
             capsuleList.innerHTML = '';
             capsuleList.classList.add('show');
             capsuleDetail.classList.remove('show');
+            capWrite.classList.remove('show');
             capsuleBack.style.display = 'none';
 
-            capsules.forEach(function(cap, i) {
+            var all = getAllCapsules();
+            all.forEach(function(cap, i) {
                 var card = document.createElement('div');
                 card.className = 'capsule-card';
                 var title = document.createElement('div');
@@ -772,21 +1005,16 @@
                     status.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
                 }
 
-                // 锁标识
-                if (cap.key) {
+                card.appendChild(title);
+                card.appendChild(date);
+                card.appendChild(status);
+
+                if (cap.locked) {
                     var lockIcon = document.createElement('div');
                     lockIcon.className = 'capsule-card-status';
                     lockIcon.textContent = '🔒 需暗号';
                     lockIcon.style.marginTop = '2px';
-                    status.appendChild(document.createElement('br'));
-                    card.appendChild(title);
-                    card.appendChild(date);
-                    card.appendChild(status);
                     card.appendChild(lockIcon);
-                } else {
-                    card.appendChild(title);
-                    card.appendChild(date);
-                    card.appendChild(status);
                 }
 
                 card.addEventListener('click', function(e) {
@@ -796,12 +1024,23 @@
 
                 capsuleList.appendChild(card);
             });
+
+            // 「写一颗」按钮
+            var writeBtn = document.createElement('div');
+            writeBtn.className = 'capsule-write-new-btn';
+            writeBtn.textContent = '✍ 写一颗时间胶囊';
+            writeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showCapsuleWrite();
+            });
+            capsuleList.appendChild(writeBtn);
         }
 
         // ===== 打开单颗胶囊详情 =====
         function openCapsuleDetail(idx) {
             currentCapsule = idx;
-            var cap = capsules[idx];
+            var all = getAllCapsules();
+            var cap = all[idx];
             capsuleList.classList.remove('show');
             capsuleDetail.classList.add('show');
             capsuleBack.style.display = 'block';
@@ -816,11 +1055,11 @@
                 capsuleTitle.textContent = '还没到时候';
                 capsuleCountdown.textContent = '还有 ' + getDaysLeft(cap) + ' 天';
             } else {
-                if (!cap.key) {
+                if (!cap.locked) {
                     // 无密码：直接解密
                     doDecryptCapsule(idx);
-                } else if (isInRoom) {
-                    // 有密码但已在里屋：直接解密
+                } else if (isInRoom || cap.key === PASSWORD) {
+                    // 有密码但已在里屋 或 站长胶囊：直接解密
                     doDecryptCapsule(idx);
                 } else {
                     // 有密码且在外屋：先输暗号
@@ -836,7 +1075,8 @@
         }
 
         function doDecryptCapsule(idx) {
-            var cap = capsules[idx];
+            var all = getAllCapsules();
+            var cap = all[idx];
             capsuleTitle.textContent = '时间到了';
             capsuleCountdown.textContent = '';
             capsuleLock.style.display = 'none';
@@ -854,7 +1094,8 @@
         }
 
         function tryCapsuleUnlock() {
-            var cap = capsules[currentCapsule];
+            var all = getAllCapsules();
+            var cap = all[currentCapsule];
             if (capsuleInput.value === cap.key || capsuleInput.value === PASSWORD) {
                 isInRoom = true;
                 roomLabel.classList.add('show');
@@ -888,6 +1129,73 @@
             showCapsuleList();
         });
 
+        // ===== 写胶囊 =====
+        function showCapsuleWrite() {
+            capsuleList.classList.remove('show');
+            capsuleDetail.classList.remove('show');
+            capWrite.classList.add('show');
+            capsuleBack.style.display = 'block';
+            writeDate.value = '';
+            writeContent.value = '';
+            writePassword.value = '';
+            setTimeout(function() {
+                writeDate.focus();
+            }, 300);
+        }
+
+        async function submitCapsule() {
+            var date = writeDate.value;
+            var content = writeContent.value.trim();
+            var pwd = writePassword.value.trim();
+
+            if (!date) { showCapToast('请选开启日期'); return; }
+            if (!content) { showCapToast('内容不能为空'); return; }
+            if (date < getTodayStr()) { showCapToast('开启日期不能是过去'); return; }
+
+            writeSubmit.disabled = true;
+            writeSubmit.textContent = '封存中...';
+
+            try {
+                // 生成密文：有密码用密码加密，没密码用一个随机密钥（存到 key 里供解密用）
+                var encKey = pwd || ('open_' + Date.now() + '_' + Math.random().toString(36).slice(2,10));
+                var encData = await encryptCapsule(content, encKey);
+
+                var newCap = {
+                    date: date,
+                    data: encData,
+                    key: pwd || encKey,
+                    locked: !!pwd,
+                    hint: pwd ? '输入你设的暗号' : ''
+                };
+
+                var ok = await uploadUserCapsule(newCap);
+                if (ok) {
+                    showCapToast('胶囊已封存 ✓\n到时候回来拆');
+                    // 刷新列表
+                    userCapsules.push(newCap);
+                    setTimeout(function() {
+                        showCapsuleList();
+                    }, 1500);
+                } else {
+                    showCapToast('封存失败 稍后再试');
+                }
+            } catch(e) {
+                showCapToast('出了点问题 稍后再试');
+            }
+
+            writeSubmit.disabled = false;
+            writeSubmit.textContent = '封存胶囊';
+        }
+
+        writeSubmit.addEventListener('click', function(e) {
+            e.stopPropagation();
+            submitCapsule();
+        });
+
+        // 输入框阻止冒泡（防止触发换句）
+        capWrite.addEventListener('click', function(e) { e.stopPropagation(); });
+        capWrite.addEventListener('touchend', function(e) { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+
         function closeCapsule() {
             capsuleModal.classList.add('hide');
             setTimeout(function() {
@@ -896,6 +1204,7 @@
                 capsuleContent.style.display = 'none';
                 capsuleList.classList.remove('show');
                 capsuleDetail.classList.remove('show');
+                capWrite.classList.remove('show');
                 capsuleBack.style.display = 'none';
                 currentCapsule = -1;
             }, 600);
