@@ -124,6 +124,44 @@
             100% { width: 100px; height: 100px; opacity: 0; }
         }
 
+        /* ===== 扩散光圈波纹 ===== */
+        .hotspot-ripple {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1.5px solid rgba(120,190,255,0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: rippleWave 4s ease-out forwards;
+        }
+
+        @keyframes rippleWave {
+            0% {
+                width: 24px; height: 24px;
+                opacity: 0.7;
+                border-width: 2px;
+                border-color: rgba(140,200,255,0.6);
+                box-shadow: 0 0 12px rgba(100,180,255,0.4), inset 0 0 8px rgba(100,180,255,0.2);
+            }
+            25% {
+                opacity: 0.45;
+                border-width: 1.2px;
+                box-shadow: 0 0 8px rgba(100,180,255,0.2);
+            }
+            60% {
+                opacity: 0.2;
+                border-width: 0.8px;
+                box-shadow: 0 0 4px rgba(100,180,255,0.1);
+            }
+            100% {
+                width: 210px; height: 210px;
+                opacity: 0;
+                border-width: 0.5px;
+                border-color: rgba(100,180,255,0);
+                box-shadow: 0 0 0px rgba(100,180,255,0);
+            }
+        }
+
         .hotspot.is-active .hotspot-core {
             animation: none;
             background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(150,200,255,1) 30%, rgba(80,140,255,0.5) 70%, transparent 100%);
@@ -543,6 +581,37 @@
         // 返回页面时重置所有光点
         window.addEventListener('pageshow', () => {
             resetHotspots();
+        });
+
+        // ===== 周期性扩散光圈波纹 =====
+        function emitRipple(hotspot) {
+            const core = hotspot.querySelector('.hotspot-core');
+            if (!core) return;
+            const ripple = document.createElement('div');
+            ripple.className = 'hotspot-ripple';
+            core.appendChild(ripple);
+            // 动画结束后自动移除
+            ripple.addEventListener('animationend', () => {
+                if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+            });
+            // 安全兜底：4.5s 后强制移除
+            setTimeout(() => {
+                if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+            }, 4500);
+        }
+
+        const hotspots = document.querySelectorAll('.hotspot');
+        // 每个光点错开发射节奏，营造不同步的扩散感
+        hotspots.forEach((h, i) => {
+            // 首次延迟不同，让各光点波纹错开
+            const initialDelay = i * 1200;
+            setTimeout(() => {
+                emitRipple(h);
+                // 之后每隔 5 秒发射一次
+                setInterval(() => {
+                    emitRipple(h);
+                }, 5000);
+            }, initialDelay);
         });
     </script>
 
