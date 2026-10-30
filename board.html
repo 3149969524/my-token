@@ -637,6 +637,74 @@
         var selectedIndices = new Set();
         var searchKeyword = ''; // 管理员搜索关键字
 
+        // ===== 防刷屏巡查系统 =====
+        var SPAM_WINDOW_MS = 60000;   // 60秒窗口期
+        var SPAM_MAX_POSTS = 3;       // 窗口内最多发3条
+        var SPAM_TRACKER = {};        // { key: [{content, time}] }
+
+        function getSpamKey(name, content) {
+            // 用昵称+内容前50字符作为指纹
+            return (name || '匿名访客') + '|' + (content || '').substring(0, 50).trim();
+        }
+
+        function checkSpam(name, content, isReply) {
+            if (isAdmin) return null; // 管理员豁免
+
+            var key = getSpamKey(name, content);
+            var now = Date.now();
+            var records = SPAM_TRACKER[key] || [];
+
+            // 清理过期记录
+            records = records.filter(function(r) { return now - r.time < SPAM_WINDOW_MS; });
+
+            // 1. 重复内容检测：完全相同的留言/回复内容
+            var dupKey = (name || '匿名访客') + '|' + (content || '').trim();
+            var dupRecords = (SPAM_TRACKER['__dup__'] || []).filter(function(r) {
+                return now - r.time < SPAM_WINDOW_MS && r.key === dupKey;
+            });
+
+            if (dupRecords.length >= 2) {
+                return '检测到重复内容刷屏，请勿发送相同内容！🚫';
+            }
+
+            // 2. 连续发帖上限检测
+            // 用昵称维度统计
+            var nameKey = '__name__' + (name || '匿名访客');
+            var nameRecords = (SPAM_TRACKER[nameKey] || []).filter(function(r) {
+                return now - r.time < SPAM_WINDOW_MS;
+            });
+
+            if (nameRecords.length >= SPAM_MAX_POSTS) {
+                var waitSec = Math.ceil((SPAM_WINDOW_MS - (now - nameRecords[0].time)) / 1000);
+                return '发送过于频繁，请 ' + waitSec + ' 秒后再试！⏳';
+            }
+
+            return null; // 通过检查
+        }
+
+        function recordSpam(name, content) {
+            if (isAdmin) return;
+            var now = Date.now();
+            var dupKey = (name || '匿名访客') + '|' + (content || '').trim();
+
+            // 记录内容指纹
+            var key = getSpamKey(name, content);
+            if (!SPAM_TRACKER[key]) SPAM_TRACKER[key] = [];
+            SPAM_TRACKER[key].push({ content: content, time: now });
+            SPAM_TRACKER[key] = SPAM_TRACKER[key].filter(function(r) { return now - r.time < SPAM_WINDOW_MS; });
+
+            // 记录重复检测
+            if (!SPAM_TRACKER['__dup__']) SPAM_TRACKER['__dup__'] = [];
+            SPAM_TRACKER['__dup__'].push({ key: dupKey, time: now });
+            SPAM_TRACKER['__dup__'] = SPAM_TRACKER['__dup__'].filter(function(r) { return now - r.time < SPAM_WINDOW_MS; });
+
+            // 记录昵称维度
+            var nameKey = '__name__' + (name || '匿名访客');
+            if (!SPAM_TRACKER[nameKey]) SPAM_TRACKER[nameKey] = [];
+            SPAM_TRACKER[nameKey].push({ time: now });
+            SPAM_TRACKER[nameKey] = SPAM_TRACKER[nameKey].filter(function(r) { return now - r.time < SPAM_WINDOW_MS; });
+        }
+
         // ===== 管理员密码 =====
         var ADMIN_PASSWORD = 'hmj1314520';
         var isAdmin = localStorage.getItem('msgboard_admin') === '1';
@@ -972,6 +1040,11 @@
         async function addMessage(name, content, btnEl) {
             if (!content.trim()) { showToast('请输入留言内容！'); return false; }
             if (isPublishing) { showToast('正在发布中，请稍等...'); return false; }
+
+            // 防刷屏检查
+            var spamMsg = checkSpam(name, content, false);
+            if (spamMsg) { showToast(spamMsg); return false; }
+
             isPublishing = true;
             if (btnEl) { btnEl.textContent = '发布中...'; btnEl.disabled = true; }
 
@@ -1004,6 +1077,7 @@
                     if (putData.content && putData.content.sha) lastSha = putData.content.sha;
                     try { fetch(PURGE_URL); } catch(e) {}
                     showToast('发布成功！✅');
+                    recordSpam(name, content);
                 } else if (putResp && putResp.status === 409) {
                     showToast('同步数据中...');
                     var apiData = await fetchFromAPI();
@@ -1028,6 +1102,7 @@
                             if (retryData.content && retryData.content.sha) lastSha = retryData.content.sha;
                             try { fetch(PURGE_URL); } catch(e) {}
                             showToast('发布成功！✅');
+                            recordSpam(name, content);
                             lastMessages = freshMsgs;
                             renderMessages(freshMsgs);
                         } else {
@@ -1072,11 +1147,17 @@
             var btnEl = document.getElementById('replyBtn_' + msgIndex);
             if (!contentEl || !contentEl.value.trim()) { showToast('请输入回复内容！'); return; }
             if (isPublishing) { showToast('操作中，请稍等...'); return; }
-            isPublishing = true;
-            if (btnEl) { btnEl.textContent = '回复中...'; btnEl.disabled = true; }
 
             var replyName = nameEl ? (nameEl.value.trim() || '匿名访客') : '匿名访客';
             var replyContent = contentEl.value.trim();
+
+            // 防刷屏检查
+            var spamMsg = checkSpam(replyName, replyContent, true);
+            if (spamMsg) { showToast(spamMsg); return; }
+
+            isPublishing = true;
+            if (btnEl) { btnEl.textContent = '回复中...'; btnEl.disabled = true; }
+
             var newReply = { name: replyName, content: replyContent, time: Date.now() };
 
             try {
@@ -1116,6 +1197,7 @@
                     if (putData.content && putData.content.sha) lastSha = putData.content.sha;
                     try { fetch(PURGE_URL); } catch(e) {}
                     showToast('回复成功！✅');
+                    recordSpam(replyName, replyContent);
                 } else if (putResp && putResp.status === 409) {
                     showToast('同步数据中...');
                     var retryData = await fetchFromAPI();
@@ -1142,6 +1224,7 @@
                             if (rData.content && rData.content.sha) lastSha = rData.content.sha;
                             try { fetch(PURGE_URL); } catch(e) {}
                             showToast('回复成功！✅');
+                            recordSpam(replyName, replyContent);
                             lastMessages = freshMsgs;
                             renderMessages(freshMsgs);
                         } else {
