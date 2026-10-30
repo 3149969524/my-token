@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>屿语</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: linear-gradient(180deg, #0a1029 0%, #070b1e 40%, #04060f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .sentence {
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            font-weight: 300;
+            color: #f0ebe0;
+            font-size: 1.35rem;
+            line-height: 2;
+            text-align: center;
+            max-width: 80%;
+            letter-spacing: 0.06em;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            text-shadow: 0 0 20px rgba(240, 235, 224, 0.08);
+        }
+
+        .sentence.show {
+            opacity: 1;
+        }
+
+        .sign {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            writing-mode: vertical-rl;
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 300;
+            color: rgba(240, 235, 224, 0.3);
+            letter-spacing: 0.5em;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sentence" id="sentence"></div>
+
+    <div class="sign">屿语</div>
+
+    <script>
+        // ===== 句子列表（以后在这里添加内容）=====
+        var sentences = [
+            // 空着，内容以后单独给
+        ];
+
+        // ===== 逻辑 =====
+        var current = -1;
+        var el = document.getElementById('sentence');
+
+        function showSentence() {
+            if (sentences.length === 0) return;
+
+            el.classList.remove('show');
+
+            setTimeout(function() {
+                var next;
+                do {
+                    next = Math.floor(Math.random() * sentences.length);
+                } while (next === current && sentences.length > 1);
+                current = next;
+                el.textContent = sentences[current];
+                el.classList.add('show');
+            }, 1200);
+        }
+
+        // 初始显示
+        showSentence();
+
+        // 点击换一句
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('sign')) return;
+            showSentence();
+        });
+
+        // 防止双击放大
+        document.addEventListener('touchend', function(e) {
+            if (e.target.classList.contains('sign')) return;
+            if (e.cancelable) e.preventDefault();
+            showSentence();
+        }, { passive: false });
+    </script>
+
+</body>
+</html>
