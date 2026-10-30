@@ -599,7 +599,15 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
 
             isPublishing = true;
             try {
-                var msgs = lastMessages.slice();
+                // 删除前先重新获取最新数据和SHA，确保不冲突
+                var apiData = await fetchFromAPI();
+                if (!apiData) { showToast('获取数据失败，请重试 ❌'); isPublishing = false; return; }
+
+                var msgs = apiData.messages;
+                lastSha = apiData.sha;
+                lastMessages = msgs;
+                renderMessages(msgs);
+
                 if (msgIndex < 0 || msgIndex >= msgs.length) {
                     showToast('留言不存在 ❌'); isPublishing = false; return;
                 }
@@ -609,8 +617,7 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
                 renderMessages(msgs);
 
                 var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: msgs}))));
-                var putBody = { message: 'Delete a message', content: contentB64 };
-                if (lastSha) putBody.sha = lastSha;
+                var putBody = { message: 'Delete a message', content: contentB64, sha: lastSha };
 
                 var putResp = await fetchWithTimeout(API_URL, {
                     method: 'PUT',
@@ -628,15 +635,13 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
                     try { fetch(PURGE_URL); } catch(e) {}
                     showToast('删除成功！✅');
                 } else if (putResp && putResp.status === 409) {
-                    // SHA冲突，重新获取
-                    showToast('同步数据中...');
-                    var apiData = await fetchFromAPI();
-                    if (apiData) {
-                        lastSha = apiData.sha;
-                        var freshMsgs = apiData.messages;
+                    // SHA冲突，再试一次
+                    var retryData = await fetchFromAPI();
+                    if (retryData) {
+                        lastSha = retryData.sha;
+                        var freshMsgs = retryData.messages;
                         if (msgIndex < freshMsgs.length) freshMsgs.splice(msgIndex, 1);
                         var retryB64 = btoa(unescape(encodeURIComponent(JSON.stringify({messages: freshMsgs}))));
-                        var retryBody = { message: 'Delete a message', content: retryB64, sha: lastSha };
                         var retryResp = await fetchWithTimeout(API_URL, {
                             method: 'PUT',
                             headers: {
@@ -644,25 +649,27 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
                                 'Accept': 'application/vnd.github+json',
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(retryBody)
+                            body: JSON.stringify({ message: 'Delete a message', content: retryB64, sha: lastSha })
                         }, 15000);
                         if (retryResp && retryResp.ok) {
-                            var retryData = await retryResp.json();
-                            if (retryData.content && retryData.content.sha) lastSha = retryData.content.sha;
+                            var rData = await retryResp.json();
+                            if (rData.content && rData.content.sha) lastSha = rData.content.sha;
                             try { fetch(PURGE_URL); } catch(e) {}
                             showToast('删除成功！✅');
                             lastMessages = freshMsgs;
                             renderMessages(freshMsgs);
                         } else {
                             showToast('删除失败，请重试 ❌');
+                            lastMessages = retryData.messages;
+                            renderMessages(retryData.messages);
                         }
                     } else {
-                        showToast('获取数据失败 ❌');
+                        showToast('网络错误 ❌');
                     }
                 } else {
                     showToast('删除失败，请重试 ❌');
-                    var fresh = await fetchFromAPI();
-                    if (fresh) { lastMessages = fresh.messages; lastSha = fresh.sha; renderMessages(fresh.messages); }
+                    lastMessages = apiData.messages;
+                    renderMessages(apiData.messages);
                 }
             } catch(e) {
                 showToast('网络错误 ❌');
@@ -780,6 +787,7 @@ var lastSha = null;  // 缓存SHA，发布时直接用，跳过GET
             }
         });
         setInterval(function() {
+            if (isPublishing) return; // 正在操作时跳过，避免覆盖
             fetchFromAPI().then(function(data) {
                 if (data) {
                     lastSha = data.sha;
