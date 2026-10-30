@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📖 关于 - 我的网站</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #666;
+            --white: #fff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+            min-height: 100vh;
+        }
+
+        /* ===== 导航栏 ===== */
+        .navbar {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 20px;
+        }
+        .navbar-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+        .navbar-logo {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 8px;
+        }
+        .navbar-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .navbar-links a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar-links a.active { color: #fff; background: rgba(255,255,255,0.15); }
+
+        /* ===== Hero ===== */
+        .hero {
+            background: var(--gradient);
+            color: var(--white);
+            text-align: center;
+            padding: 70px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: heroMove 20s linear infinite;
+        }
+        @keyframes heroMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+        .hero-content { position: relative; z-index: 2; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .hero p { font-size: 1.1rem; opacity: 0.9; }
+
+        /* ===== 内容区域 ===== */
+        .content {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .content-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 30px 28px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .content-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-section p {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .content-section ul li {
+            color: #555;
+            font-size: 0.92rem;
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        .content-section ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .tech-tag {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            margin: 4px 4px 4px 0;
+        }
+
+        /* ===== 页脚 ===== */
+        .footer { text-align: center; color: var(--gray); padding: 40px 20px; font-size: 0.85rem; background: #fff; border-top: 1px solid #eee; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2rem; }
+            .content-section { padding: 22px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 导航栏 ===== -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-logo">🌟 我的网站</a>
+            <div class="navbar-links">
+                <a href="index.html">首页</a>
+                <a href="board.html">留言板</a>
+                <a href="about.html" class="active">关于</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== Hero ===== -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>📖 关于本站</h1>
+            <p>了解一下这个小网站的故事</p>
+        </div>
+    </header>
+
+    <!-- ===== 内容 ===== -->
+    <section class="content">
+
+        <div class="content-section">
+            <h2>👋 这是什么</h2>
+            <p>这是一个个人搭建的小网站，包含一个留言板功能。你可以在这里留下任何想说的话——对朋友的感谢、匿名告白、或者随便聊聊。</p>
+            <p>所有留言都会实时显示给所有访客，不需要注册就能使用。</p>
+        </div>
+
+        <div class="content-section">
+            <h2>🛠 怎么运行的</h2>
+            <p>这个网站没有购买任何服务器或数据库，完全基于免费服务搭建：</p>
+            <ul>
+                <li>网页托管在 GitHub Pages（免费）</li>
+                <li>留言数据存储在 GitHub 仓库的 JSON 文件中</li>
+                <li>通过 GitHub API 读取和写入留言</li>
+                <li>使用 jsDelivr CDN 加速读取</li>
+                <li>页面每 5 秒自动刷新，实现"实时"效果</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>💎 用到的技术</h2>
+            <div>
+                <span class="tech-tag">HTML5</span>
+                <span class="tech-tag">CSS3</span>
+                <span class="tech-tag">JavaScript</span>
+                <span class="tech-tag">GitHub Pages</span>
+                <span class="tech-tag">GitHub API</span>
+                <span class="tech-tag">jsDelivr CDN</span>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>🔐 隐私说明</h2>
+            <p>留言数据公开存储在 GitHub 仓库中，任何人都可以看到。</p>
+            <p>请不要在留言中填写敏感个人信息（如密码、手机号等）。</p>
+            <p>管理员可以删除不当留言。</p>
+        </div>
+
+        <div class="content-section" style="text-align:center;">
+            <h2 style="justify-content:center;">💬 去留言</h2>
+            <p>看完介绍了，去留言板写两句吧！</p>
+            <a href="board.html" style="display:inline-block; background:var(--gradient); color:#fff; padding:12px 36px; border-radius:50px; text-decoration:none; font-size:1rem; font-weight:600; transition:all 0.3s; margin-top:8px;">前往留言板 →</a>
+        </div>
+
+    </section>
+
+    <!-- ===== 页脚 ===== -->
+    <footer class="footer">
+        <p>🌟 我的个人网站 · 留言板 · 关于 · 永久在线</p>
+    </footer>
+
+</body>
+</html>
