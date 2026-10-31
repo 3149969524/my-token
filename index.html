@@ -1055,10 +1055,6 @@
             initBlackHole();
         }
 
-        resize();
-        animate();
-        window.addEventListener('resize', resize);
-
         // ===== 板块星星轨道系统 =====
         const orbitHotspots = document.querySelectorAll('.hotspot[data-orbit-angle]');
         const orbitState = [];
@@ -1098,6 +1094,12 @@
                 o.el.style.zIndex = depth > 0 ? 6 : 4; // 近端在上层
             }
         }
+
+        // 初始定位一次（resize 之后 canvas 尺寸才正确）
+        resize();
+        updateOrbits();
+        animate();
+        window.addEventListener('resize', resize);
 
         // 等初始定位完成后再启动轨道（略延迟让 fade-in 先走）
         setTimeout(updateOrbits, 100); // 只执行一次初始定位，后续由 animate 驱动
