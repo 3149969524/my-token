@@ -1100,6 +1100,12 @@
             adminOverlay.style.display = 'none';
         }
 
+        function logoutAdmin() {
+            isAdmin = false;
+            adminOverlay.style.display = 'none';
+            showToast('已退出管理模式 ✅');
+        }
+
         async function openAdminPanel() {
             adminPanel.innerHTML =
                 '<div style="text-align:center;padding:30px 20px;">' +
@@ -1113,7 +1119,10 @@
                 if (!apiData) {
                     adminPanel.innerHTML =
                         '<div class="admin-empty">无法加载瓶子数据，请检查网络</div>' +
-                        '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+                    '<div class="admin-actions">' +
+                        '<button class="modal-btn secondary" onclick="closeAdmin()">关闭</button>' +
+                        '<button class="modal-btn" style="border-color:rgba(255,180,80,0.25);color:rgba(255,200,120,0.7);" onclick="logoutAdmin()">退出管理</button>' +
+                    '</div>';
                     return;
                 }
                 lastSha = apiData.sha;
@@ -1123,7 +1132,10 @@
             } catch(e) {
                 adminPanel.innerHTML =
                     '<div class="admin-empty">加载失败，请重试</div>' +
-                    '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+                    '<div class="admin-actions">' +
+                        '<button class="modal-btn secondary" onclick="closeAdmin()">关闭</button>' +
+                        '<button class="modal-btn" style="border-color:rgba(255,180,80,0.25);color:rgba(255,200,120,0.7);" onclick="logoutAdmin()">退出管理</button>' +
+                    '</div>';
             }
         }
 
@@ -1134,7 +1146,10 @@
                         '<div><div class="admin-title">管理面板</div><div class="admin-title-sub">ADMIN PANEL</div></div>' +
                     '</div>' +
                     '<div class="admin-empty">海里还没有瓶子</div>' +
-                    '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+                    '<div class="admin-actions">' +
+                        '<button class="modal-btn secondary" onclick="closeAdmin()">关闭</button>' +
+                        '<button class="modal-btn" style="border-color:rgba(255,180,80,0.25);color:rgba(255,200,120,0.7);" onclick="logoutAdmin()">退出管理</button>' +
+                    '</div>';
                 return;
             }
 
@@ -1172,6 +1187,7 @@
             html += '</div>' +
                 '<div class="admin-actions">' +
                     '<button class="modal-btn secondary" onclick="closeAdmin()">关闭</button>' +
+                    '<button class="modal-btn" style="border-color:rgba(255,180,80,0.25);color:rgba(255,200,120,0.7);" onclick="logoutAdmin()">退出管理</button>' +
                     '<button class="admin-btn-danger" id="clearAllBtn" onclick="clearAllBottles()">清空所有瓶子</button>' +
                 '</div>';
 
