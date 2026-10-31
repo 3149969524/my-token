@@ -1073,14 +1073,20 @@
             e.stopPropagation();
         });
 
-        // ===== 初始显示 =====
-        showSentence();
-
         // ===== 从 #capsule 链接进入时自动打开胶囊 =====
         if (location.hash === '#capsule') {
-            setTimeout(function() {
-                openCapsuleList();
-            }, 1000);
+            // 隐藏屿语内容，避免闪现
+            el.style.opacity = '0';
+            yuSign.style.opacity = '0';
+            // 等页面渲染完再打开胶囊（缩短延迟）
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    openCapsuleList();
+                });
+            });
+        } else {
+            // ===== 初始显示 =====
+            showSentence();
         }
 
         // ===== 点击换句（排除屿语和里屋门）=====
@@ -1783,7 +1789,14 @@
         });
 
         capsuleModal.addEventListener('click', function(e) {
-            if (e.target === capsuleModal) closeCapsule();
+            if (e.target === capsuleModal) {
+                // 在详情页或写胶囊页时，点空白返回列表而非关闭
+                if (capsuleDetail.classList.contains('show') || capWrite.classList.contains('show')) {
+                    showCapsuleList();
+                } else {
+                    closeCapsule();
+                }
+            }
         });
 
         // ===== 管理员功能 =====
