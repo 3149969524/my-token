@@ -1231,21 +1231,27 @@
                     renderBottle(currentBottle);
                     salvageOverlay.style.display = 'flex';
 
-                    // 增加漂流次数
-                    bottles[idx].drifts = (bottles[idx].drifts || 0) + 1;
-                    var apiData = await getSha();
-                    if (apiData) {
-                        lastSha = apiData.sha;
-                        var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
-                        var freshBottles = content.bottles || [];
-                        if (idx < freshBottles.length) {
-                            freshBottles[idx].drifts = (freshBottles[idx].drifts || 0) + 1;
-                            await saveBottles(freshBottles);
-                        }
-                    }
-
+                    // 先释放 isBusy，让用户可以立即回信
                     isBusy = false;
                     salvageBtn.style.opacity = '1';
+
+                    // 后台异步增加漂流次数（不阻塞用户操作）
+                    try {
+                        var apiData = await getSha();
+                        if (apiData) {
+                            lastSha = apiData.sha;
+                            var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                            var freshBottles = content.bottles || [];
+                            // 按 id 查找，避免数组顺序变化导致错位
+                            for (var i = 0; i < freshBottles.length; i++) {
+                                if (freshBottles[i].id === currentBottle.id) {
+                                    freshBottles[i].drifts = (freshBottles[i].drifts || 0) + 1;
+                                    break;
+                                }
+                            }
+                            await saveBottles(freshBottles);
+                        }
+                    } catch(e) {}
                 }, 2200);
             } catch(e) {
                 salvageAnim.style.display = 'none';
