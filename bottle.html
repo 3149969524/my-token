@@ -20,32 +20,33 @@
         .bg-layer {
             position: fixed; inset: 0; z-index: 0;
             background: 
-                radial-gradient(ellipse at 50% 30%, #0d1b3a 0%, transparent 60%),
-                radial-gradient(ellipse at 20% 70%, rgba(30, 50, 90, 0.25) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(40, 60, 100, 0.18) 0%, transparent 50%),
-                linear-gradient(180deg, #02050d 0%, #050a18 40%, #080f20 70%, #0a1024 100%);
+                radial-gradient(ellipse 80% 50% at 50% 25%, #102045 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 20% 65%, rgba(40, 80, 140, 0.3) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 80% 75%, rgba(60, 100, 160, 0.25) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 30% at 50% 95%, rgba(30, 60, 120, 0.35) 0%, transparent 60%),
+                linear-gradient(180deg, #030810 0%, #060d1c 30%, #0a1326 60%, #0d1830 100%);
         }
         .bg-layer::before {
             content: '';
             position: absolute; inset: 0;
             background: 
-                radial-gradient(ellipse at 25% 35%, rgba(60, 100, 160, 0.08) 0%, transparent 40%),
-                radial-gradient(ellipse at 75% 15%, rgba(80, 120, 200, 0.06) 0%, transparent 35%),
-                radial-gradient(ellipse at 50% 90%, rgba(20, 50, 80, 0.2) 0%, transparent 45%);
+                radial-gradient(ellipse 40% 30% at 25% 30%, rgba(80, 120, 200, 0.12) 0%, transparent 45%),
+                radial-gradient(ellipse 35% 25% at 75% 15%, rgba(100, 140, 220, 0.1) 0%, transparent 40%),
+                radial-gradient(ellipse 50% 35% at 50% 85%, rgba(40, 80, 140, 0.25) 0%, transparent 50%);
         }
         .bg-layer::after {
             content: '';
             position: absolute; inset: 0;
             background: 
-                radial-gradient(circle at 15% 25%, rgba(100, 130, 200, 0.04) 0%, transparent 2%),
-                radial-gradient(circle at 45% 60%, rgba(120, 150, 220, 0.03) 0%, transparent 2%),
-                radial-gradient(circle at 70% 40%, rgba(100, 140, 210, 0.04) 0%, transparent 2%),
-                radial-gradient(circle at 85% 75%, rgba(110, 130, 200, 0.03) 0%, transparent 2%);
+                radial-gradient(circle 2px at 15% 25%, rgba(180, 210, 255, 0.08) 0%, transparent 3%),
+                radial-gradient(circle 2px at 45% 60%, rgba(200, 220, 255, 0.06) 0%, transparent 3%),
+                radial-gradient(circle 2px at 70% 40%, rgba(180, 210, 255, 0.08) 0%, transparent 3%),
+                radial-gradient(circle 2px at 85% 75%, rgba(190, 215, 255, 0.06) 0%, transparent 3%);
         }
         canvas#starfield { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
         .vignette {
             position: fixed; inset: 0; z-index: 2; pointer-events: none;
-            background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.4) 85%, rgba(0,0,0,0.7) 100%);
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 90%, rgba(0,0,0,0.6) 100%);
         }
 
         /* ===== 海浪动画（星海水面） ===== */
@@ -667,7 +668,7 @@
         const ctx = canvas.getContext('2d');
         let stars = [];
         let bigStars = [];
-        let nebulaParticles = [];
+        let nebulae = [];
         let meteors = [];
         let floatingBottles = [];
 
@@ -675,62 +676,79 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            // 小星星
+            // 小星星（加密）
             stars = [];
-            var count = Math.floor((canvas.width * canvas.height) / 8000);
+            var count = Math.floor((canvas.width * canvas.height) / 4500);
             for (var i = 0; i < count; i++) {
                 stars.push({
                     x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.85,
-                    r: Math.random() * 0.7 + 0.15,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 0.9 + 0.2,
                     tw: Math.random() * Math.PI * 2,
-                    sp: 0.003 + Math.random() * 0.012,
-                    hue: Math.random() < 0.15 ? 'warm' : 'cool'
+                    sp: 0.004 + Math.random() * 0.016,
+                    hue: Math.random() < 0.2 ? 'warm' : (Math.random() < 0.15 ? 'purple' : 'cool')
                 });
             }
 
-            // 亮星
+            // 亮星（加多、加大）
             bigStars = [];
-            var bigCount = Math.floor(count / 40);
+            var bigCount = Math.floor(count / 25);
             for (var i = 0; i < bigCount; i++) {
                 bigStars.push({
                     x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.8,
-                    r: Math.random() * 1.2 + 0.8,
+                    y: Math.random() * canvas.height * 0.85,
+                    r: Math.random() * 1.8 + 1.0,
                     tw: Math.random() * Math.PI * 2,
-                    sp: 0.002 + Math.random() * 0.006,
-                    hue: Math.random() < 0.2 ? 'warm' : 'cool'
+                    sp: 0.003 + Math.random() * 0.008,
+                    hue: Math.random() < 0.25 ? 'warm' : (Math.random() < 0.15 ? 'purple' : 'cool')
                 });
             }
 
-            // 星云粒子
-            nebulaParticles = [];
-            var nc = Math.floor(canvas.width / 20);
+            // 星云（加大、加亮、多种色）
+            nebulae = [];
+            var nc = Math.floor(canvas.width / 12);
             for (var i = 0; i < nc; i++) {
-                nebulaParticles.push({
+                var t = Math.random();
+                var hue;
+                if (t < 0.35) hue = 'blue';
+                else if (t < 0.6) hue = 'cyan';
+                else if (t < 0.8) hue = 'purple';
+                else hue = 'warm';
+                nebulae.push({
                     x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.7,
-                    r: Math.random() * 40 + 20,
-                    o: Math.random() * 0.03 + 0.005,
-                    vx: (Math.random() - 0.5) * 0.05,
-                    vy: (Math.random() - 0.5) * 0.03,
-                    hue: Math.random() < 0.5 ? 'blue' : 'purple'
+                    y: Math.random() * canvas.height * 0.75,
+                    r: Math.random() * 80 + 40,
+                    o: Math.random() * 0.06 + 0.02,
+                    vx: (Math.random() - 0.5) * 0.08,
+                    vy: (Math.random() - 0.5) * 0.04,
+                    hue: hue
                 });
             }
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
+        function getStarColor(hue, alpha) {
+            if (hue === 'warm') return 'rgba(255, 220, 170, ' + alpha + ')';
+            if (hue === 'purple') return 'rgba(200, 160, 255, ' + alpha + ')';
+            return 'rgba(200, 230, 255, ' + alpha + ')';
+        }
+        function getStarRGB(hue) {
+            if (hue === 'warm') return '255, 220, 170';
+            if (hue === 'purple') return '210, 170, 255';
+            return '200, 230, 255';
+        }
+
         function spawnMeteor() {
-            if (Math.random() < 0.003 && meteors.length < 2) {
+            if (Math.random() < 0.006 && meteors.length < 3) {
                 var startX = Math.random() * canvas.width;
-                var startY = Math.random() * canvas.height * 0.4;
+                var startY = Math.random() * canvas.height * 0.5;
                 meteors.push({
                     x: startX, y: startY,
-                    vx: 3 + Math.random() * 4,
-                    vy: 2 + Math.random() * 3,
+                    vx: 4 + Math.random() * 5,
+                    vy: 2.5 + Math.random() * 4,
                     life: 1.0,
-                    len: 40 + Math.random() * 60
+                    len: 60 + Math.random() * 80
                 });
             }
         }
@@ -739,17 +757,21 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 星云
-            for (var p of nebulaParticles) {
+            for (var p of nebulae) {
                 p.x += p.vx; p.y += p.vy;
-                if (p.x < -60) p.x = canvas.width + 60;
-                if (p.x > canvas.width + 60) p.x = -60;
-                if (p.y < -60) p.y = canvas.height * 0.8;
-                if (p.y > canvas.height * 0.8) p.y = -60;
+                if (p.x < -100) p.x = canvas.width + 100;
+                if (p.x > canvas.width + 100) p.x = -100;
+                if (p.y < -100) p.y = canvas.height * 0.85;
+                if (p.y > canvas.height * 0.85) p.y = -100;
                 var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
                 if (p.hue === 'blue') {
-                    grad.addColorStop(0, 'rgba(50, 90, 180, ' + p.o + ')');
+                    grad.addColorStop(0, 'rgba(60, 110, 210, ' + p.o + ')');
+                } else if (p.hue === 'cyan') {
+                    grad.addColorStop(0, 'rgba(60, 180, 220, ' + (p.o * 0.8) + ')');
+                } else if (p.hue === 'purple') {
+                    grad.addColorStop(0, 'rgba(120, 60, 180, ' + (p.o * 0.85) + ')');
                 } else {
-                    grad.addColorStop(0, 'rgba(80, 50, 130, ' + (p.o * 0.7) + ')');
+                    grad.addColorStop(0, 'rgba(200, 140, 100, ' + (p.o * 0.6) + ')');
                 }
                 grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = grad;
@@ -761,44 +783,41 @@
             // 小星星
             for (var s of stars) {
                 s.tw += s.sp;
-                var a = 0.25 + Math.sin(s.tw) * 0.3;
+                var a = 0.35 + Math.sin(s.tw) * 0.35;
                 ctx.beginPath();
                 ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                if (s.hue === 'warm') {
-                    ctx.fillStyle = 'rgba(255, 220, 180, ' + a + ')';
-                } else {
-                    ctx.fillStyle = 'rgba(180, 210, 255, ' + a + ')';
-                }
+                ctx.fillStyle = getStarColor(s.hue, a);
                 ctx.fill();
             }
 
-            // 亮星（带十字光芒）
+            // 亮星（带十字光芒 + 光晕）
             for (var b of bigStars) {
                 b.tw += b.sp;
-                var a = 0.4 + Math.sin(b.tw) * 0.35;
-                var color = b.hue === 'warm' ? '255, 220, 180' : '200, 220, 255';
+                var a = 0.5 + Math.sin(b.tw) * 0.4;
+                var rgb = getStarRGB(b.hue);
 
                 // 光芒线
-                ctx.strokeStyle = 'rgba(' + color + ', ' + (a * 0.3) + ')';
-                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = 'rgba(' + rgb + ', ' + (a * 0.4) + ')';
+                ctx.lineWidth = 0.8;
                 ctx.beginPath();
-                ctx.moveTo(b.x - b.r * 4, b.y); ctx.lineTo(b.x + b.r * 4, b.y);
-                ctx.moveTo(b.x, b.y - b.r * 4); ctx.lineTo(b.x, b.y + b.r * 4);
+                ctx.moveTo(b.x - b.r * 5, b.y); ctx.lineTo(b.x + b.r * 5, b.y);
+                ctx.moveTo(b.x, b.y - b.r * 5); ctx.lineTo(b.x, b.y + b.r * 5);
                 ctx.stroke();
+
+                // 光晕
+                var halo = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 4);
+                halo.addColorStop(0, 'rgba(' + rgb + ', ' + (a * 0.4) + ')');
+                halo.addColorStop(0.5, 'rgba(' + rgb + ', ' + (a * 0.1) + ')');
+                halo.addColorStop(1, 'rgba(' + rgb + ', 0)');
+                ctx.fillStyle = halo;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r * 4, 0, Math.PI * 2);
+                ctx.fill();
 
                 // 星核
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(' + color + ', ' + a + ')';
-                ctx.fill();
-
-                // 光晕
-                var halo = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 3);
-                halo.addColorStop(0, 'rgba(' + color + ', ' + (a * 0.3) + ')');
-                halo.addColorStop(1, 'rgba(' + color + ', 0)');
-                ctx.fillStyle = halo;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.r * 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + rgb + ', ' + a + ')';
                 ctx.fill();
             }
 
@@ -807,8 +826,8 @@
             for (var i = meteors.length - 1; i >= 0; i--) {
                 var m = meteors[i];
                 m.x += m.vx; m.y += m.vy;
-                m.life -= 0.015;
-                if (m.life <= 0 || m.x > canvas.width || m.y > canvas.height) {
+                m.life -= 0.012;
+                if (m.life <= 0 || m.x > canvas.width + 100 || m.y > canvas.height + 100) {
                     meteors.splice(i, 1);
                     continue;
                 }
@@ -816,17 +835,21 @@
                 var tailY = m.y - m.vy * m.len / 5;
                 var grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
                 grad.addColorStop(0, 'rgba(150, 200, 255, 0)');
-                grad.addColorStop(1, 'rgba(200, 230, 255, ' + (m.life * 0.8) + ')');
+                grad.addColorStop(0.7, 'rgba(200, 230, 255, ' + (m.life * 0.5) + ')');
+                grad.addColorStop(1, 'rgba(255, 250, 230, ' + (m.life * 0.9) + ')');
                 ctx.strokeStyle = grad;
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(tailX, tailY);
                 ctx.lineTo(m.x, m.y);
                 ctx.stroke();
-                // 头部光点
+                // 头部光晕
+                var headGlow = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 6);
+                headGlow.addColorStop(0, 'rgba(255, 250, 220, ' + m.life + ')');
+                headGlow.addColorStop(1, 'rgba(255, 230, 180, 0)');
+                ctx.fillStyle = headGlow;
                 ctx.beginPath();
-                ctx.arc(m.x, m.y, 1.5, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 240, 200, ' + m.life + ')';
+                ctx.arc(m.x, m.y, 6, 0, Math.PI * 2);
                 ctx.fill();
             }
 
@@ -837,55 +860,83 @@
         }
         drawStars();
 
-        // ===== 漂浮瓶子绘制 =====
+        // ===== 漂浮瓶子绘制（精美版） =====
         function drawBottleShape(cx, cy, size, alpha, glow) {
-            var w = size * 0.5, h = size;
+            var w = size * 0.55, h = size;
             var bx = cx - w / 2, by = cy - h / 2;
 
-            // 瓶身光晕
+            // 外层大光晕
             if (glow) {
-                var glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.8);
-                glowGrad.addColorStop(0, 'rgba(100, 170, 230, ' + (alpha * 0.12) + ')');
-                glowGrad.addColorStop(1, 'rgba(100, 170, 230, 0)');
+                var glowGrad = ctx.createRadialGradient(cx, cy + h * 0.1, 0, cx, cy + h * 0.1, size * 1.2);
+                glowGrad.addColorStop(0, 'rgba(100, 180, 240, ' + (alpha * 0.25) + ')');
+                glowGrad.addColorStop(0.4, 'rgba(80, 150, 220, ' + (alpha * 0.1) + ')');
+                glowGrad.addColorStop(1, 'rgba(80, 150, 220, 0)');
                 ctx.fillStyle = glowGrad;
                 ctx.beginPath();
-                ctx.arc(cx, cy, size * 0.8, 0, Math.PI * 2);
+                ctx.arc(cx, cy + h * 0.1, size * 1.2, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // 瓶身
-            ctx.strokeStyle = 'rgba(120, 180, 230, ' + (alpha * 0.5) + ')';
-            ctx.fillStyle = 'rgba(100, 160, 210, ' + (alpha * 0.06) + ')';
-            ctx.lineWidth = 1;
+            // 瓶身渐变填充
+            var bodyGrad = ctx.createLinearGradient(cx - w * 0.5, by, cx + w * 0.5, by + h);
+            bodyGrad.addColorStop(0, 'rgba(60, 130, 200, ' + (alpha * 0.15) + ')');
+            bodyGrad.addColorStop(0.5, 'rgba(100, 180, 240, ' + (alpha * 0.25) + ')');
+            bodyGrad.addColorStop(1, 'rgba(60, 130, 200, ' + (alpha * 0.15) + ')');
 
-            // 瓶身路径
+            // 瓶身轮廓 + 高光
+            ctx.strokeStyle = 'rgba(150, 210, 255, ' + (alpha * 0.85) + ')';
+            ctx.fillStyle = bodyGrad;
+            ctx.lineWidth = 1.2;
+
+            // 瓶身路径（更精致的瓶形）
             ctx.beginPath();
-            ctx.moveTo(cx - w * 0.25, by);
-            ctx.lineTo(cx + w * 0.25, by);
-            ctx.lineTo(cx + w * 0.25, by + h * 0.1);
+            ctx.moveTo(cx - w * 0.22, by);
+            ctx.lineTo(cx + w * 0.22, by);
+            ctx.lineTo(cx + w * 0.22, by + h * 0.08);
             ctx.lineTo(cx + w * 0.5, by + h * 0.2);
-            ctx.quadraticCurveTo(cx + w * 0.5, by + h * 0.65, cx + w * 0.45, by + h * 0.85);
-            ctx.quadraticCurveTo(cx + w * 0.4, by + h, cx + w * 0.3, by + h);
-            ctx.lineTo(cx - w * 0.3, by + h);
-            ctx.quadraticCurveTo(cx - w * 0.4, by + h, cx - w * 0.45, by + h * 0.85);
-            ctx.quadraticCurveTo(cx - w * 0.5, by + h * 0.65, cx - w * 0.5, by + h * 0.2);
-            ctx.lineTo(cx - w * 0.25, by + h * 0.1);
+            ctx.quadraticCurveTo(cx + w * 0.52, by + h * 0.5, cx + w * 0.48, by + h * 0.8);
+            ctx.quadraticCurveTo(cx + w * 0.42, by + h * 0.98, cx + w * 0.3, by + h * 0.98);
+            ctx.lineTo(cx - w * 0.3, by + h * 0.98);
+            ctx.quadraticCurveTo(cx - w * 0.42, by + h * 0.98, cx - w * 0.48, by + h * 0.8);
+            ctx.quadraticCurveTo(cx - w * 0.52, by + h * 0.5, cx - w * 0.5, by + h * 0.2);
+            ctx.lineTo(cx - w * 0.22, by + h * 0.08);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
 
-            // 瓶口
-            ctx.strokeStyle = 'rgba(120, 180, 230, ' + (alpha * 0.35) + ')';
+            // 瓶身内部高光（竖线）
+            ctx.strokeStyle = 'rgba(200, 230, 255, ' + (alpha * 0.4) + ')';
+            ctx.lineWidth = 0.8;
             ctx.beginPath();
-            ctx.moveTo(cx - w * 0.15, by + h * 0.05);
-            ctx.lineTo(cx + w * 0.15, by + h * 0.05);
+            ctx.moveTo(cx - w * 0.2, by + h * 0.25);
+            ctx.quadraticCurveTo(cx - w * 0.25, by + h * 0.5, cx - w * 0.2, by + h * 0.75);
             ctx.stroke();
 
-            // 小光点
+            // 瓶口盖
+            ctx.fillStyle = 'rgba(120, 180, 230, ' + (alpha * 0.3) + ')';
+            ctx.strokeStyle = 'rgba(150, 210, 255, ' + (alpha * 0.6) + ')';
+            ctx.lineWidth = 0.8;
             ctx.beginPath();
-            ctx.arc(cx, cy + h * 0.1, 1, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(150, 210, 255, ' + (alpha * 0.3) + ')';
+            ctx.rect(cx - w * 0.18, by + h * 0.02, w * 0.36, h * 0.06);
             ctx.fill();
+            ctx.stroke();
+
+            // 瓶内信纸光点
+            var letterGlow = ctx.createRadialGradient(cx, cy + h * 0.4, 0, cx, cy + h * 0.4, size * 0.15);
+            letterGlow.addColorStop(0, 'rgba(255, 230, 160, ' + (alpha * 0.6) + ')');
+            letterGlow.addColorStop(1, 'rgba(255, 200, 120, 0)');
+            ctx.fillStyle = letterGlow;
+            ctx.beginPath();
+            ctx.arc(cx, cy + h * 0.4, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 水面接触反光
+            ctx.strokeStyle = 'rgba(180, 230, 255, ' + (alpha * 0.5) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(cx - w * 0.35, by + h * 0.98);
+            ctx.lineTo(cx + w * 0.35, by + h * 0.98);
+            ctx.stroke();
         }
 
         function drawFloatingBottles() {
@@ -894,17 +945,19 @@
                 fb.phase += fb.sp;
                 fb.x += fb.vx;
                 var yBase = fb.y;
-                var yOff = Math.sin(fb.phase) * 8;
-                var rot = Math.sin(fb.phase * 0.7) * 0.12;
-                var alpha = fb.alpha * (0.6 + Math.sin(fb.phase * 0.5) * 0.2);
+                var yOff = Math.sin(fb.phase) * 10;
+                var rot = Math.sin(fb.phase * 0.7) * 0.15;
+                var alpha = fb.alpha * (0.7 + Math.sin(fb.phase * 0.5) * 0.25);
 
-                // 水面倒影线
-                ctx.strokeStyle = 'rgba(80, 130, 180, ' + (alpha * 0.08) + ')';
-                ctx.lineWidth = 0.5;
-                ctx.beginPath();
-                ctx.moveTo(fb.x - 15, yBase + 18);
-                ctx.lineTo(fb.x + 15, yBase + 18);
-                ctx.stroke();
+                // 水面倒影涟漪
+                var rippleAlpha = alpha * 0.15;
+                ctx.strokeStyle = 'rgba(120, 180, 230, ' + rippleAlpha + ')';
+                ctx.lineWidth = 0.6;
+                for (var r = 0; r < 3; r++) {
+                    ctx.beginPath();
+                    ctx.ellipse(fb.x, yBase + fb.size * 0.5, fb.size * (0.4 + r * 0.15), 2 + r * 0.5, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
 
                 ctx.save();
                 ctx.translate(fb.x, yBase + yOff);
@@ -913,8 +966,8 @@
                 ctx.restore();
 
                 // 回绕
-                if (fb.x > canvas.width + 40) fb.x = -40;
-                if (fb.x < -40) fb.x = canvas.width + 40;
+                if (fb.x > canvas.width + 50) fb.x = -50;
+                if (fb.x < -50) fb.x = canvas.width + 50;
             }
         }
 
@@ -923,17 +976,17 @@
             var display = Math.min(Math.ceil(totalCount / 3), 8);
             if (display === 0) display = 1;
             floatingBottles = [];
-            var seaTop = canvas.height * 0.6;
-            var seaBottom = canvas.height * 0.92;
+            var seaTop = canvas.height * 0.58;
+            var seaBottom = canvas.height * 0.93;
             for (var i = 0; i < display; i++) {
                 floatingBottles.push({
                     x: Math.random() * canvas.width,
                     y: seaTop + Math.random() * (seaBottom - seaTop),
-                    size: 18 + Math.random() * 14,
+                    size: 24 + Math.random() * 18,
                     phase: Math.random() * Math.PI * 2,
-                    sp: 0.008 + Math.random() * 0.015,
-                    vx: 0.08 + Math.random() * 0.15,
-                    alpha: 0.15 + Math.random() * 0.2
+                    sp: 0.008 + Math.random() * 0.012,
+                    vx: 0.1 + Math.random() * 0.2,
+                    alpha: 0.5 + Math.random() * 0.35
                 });
             }
         }
