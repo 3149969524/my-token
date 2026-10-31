@@ -30,6 +30,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
         }
 
@@ -94,6 +95,11 @@
             padding: 30px 28px;
             box-shadow: var(--shadow);
             margin-bottom: 24px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .content-section:hover {
+            border-color: rgba(100,180,255,0.25);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 30px rgba(100,180,255,0.05);
         }
 
         .content-section h2 {
@@ -131,12 +137,68 @@
             font-size: 1.2rem;
         }
 
+        /* ===== 按钮 ===== */
+        .btn-link {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(100,180,255,0.3) 0%, rgba(60,120,255,0.2) 100%);
+            color: rgba(255,255,255,0.95);
+            padding: 10px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 8px;
+            border: 1px solid rgba(100,180,255,0.2);
+        }
+        .btn-link:hover {
+            background: linear-gradient(135deg, rgba(100,180,255,0.45) 0%, rgba(60,120,255,0.3) 100%);
+            border-color: rgba(100,180,255,0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(100,180,255,0.15);
+        }
+        .btn-link:active { transform: scale(0.97); }
+        .btn-large { padding: 12px 36px; font-size: 1rem; }
+
         /* ===== 页脚 ===== */
         .footer { text-align: center; color: rgba(255,255,255,0.4); padding: 40px 20px; font-size: 0.85rem; background: rgba(10,5,25,0.5); backdrop-filter: blur(10px); border-top: 1px solid rgba(100,180,255,0.08); }
 
+        /* ===== 移动端 ===== */
         @media (max-width: 600px) {
             .hero h1 { font-size: 2rem; }
             .content-section { padding: 22px 18px; }
+        }
+
+        /* ===== 桌面端适配 ===== */
+        @media (min-width: 900px) {
+            .hero { padding: 100px 20px; }
+            .hero h1 { font-size: 3.2rem; }
+            .hero p { font-size: 1.3rem; }
+
+            .content {
+                max-width: 900px;
+                padding: 0 32px;
+            }
+
+            /* 双列瀑布布局 */
+            .content-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            .content-section { margin-bottom: 0; }
+            .content-section.full-width { grid-column: 1 / -1; }
+
+            .content-section { padding: 36px 32px; }
+            .content-section h2 { font-size: 1.5rem; }
+            .content-section p { font-size: 1.05rem; }
+
+            .footer { padding: 50px 20px; font-size: 0.95rem; }
+        }
+
+        @media (min-width: 1200px) {
+            .content { max-width: 1000px; }
+            .content-section { padding: 40px 36px; }
         }
     </style>
 </head>
@@ -158,37 +220,39 @@
 
     <!-- ===== 内容 ===== -->
     <section class="content">
+        <div class="content-grid">
 
-        <div class="content-section">
-            <h2>情深缘浅</h2>
-            <p>「情深缘浅」为他人网站作品，所以页面UI设计与本网站不同，感兴趣的可以去浏览一下。</p>
-            <a href="https://sevrenvale.cn" target="_blank" rel="noopener" style="display:inline-block; background:linear-gradient(135deg, rgba(100,180,255,0.3) 0%, rgba(60,120,255,0.2) 100%); color:rgba(255,255,255,0.95); padding:10px 28px; border-radius:50px; text-decoration:none; font-size:0.9rem; font-weight:600; transition:all 0.3s; margin-top:8px; border:1px solid rgba(100,180,255,0.2);">前往「情深缘浅」</a>
+            <div class="content-section full-width">
+                <h2>情深缘浅</h2>
+                <p>「情深缘浅」为他人网站作品，所以页面UI设计与本网站不同，感兴趣的可以去浏览一下。</p>
+                <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="btn-link">前往「情深缘浅」</a>
+            </div>
+
+            <div class="content-section">
+                <h2>这是什么</h2>
+                <p>这是一个个人搭建的小网站，包含一个留言板功能。你可以在这里留下任何想说的话——对朋友的感谢、匿名告白、或者随便聊聊。</p>
+                <p>所有留言都会实时显示给所有访客，不需要注册就能使用。</p>
+            </div>
+
+            <div class="content-section">
+                <h2>隐私说明</h2>
+                <p>留言数据公开存储在 GitHub 仓库中，任何人都可以看到。</p>
+                <p>请不要在留言中填写敏感个人信息（如密码、手机号等）。</p>
+                <p>管理员可以删除不当留言。</p>
+            </div>
+
+            <div class="content-section full-width" style="text-align:center;">
+                <h2 style="justify-content:center;">去留言</h2>
+                <p>看完介绍了，去留言板写两句吧！</p>
+                <a href="board.html" class="btn-link btn-large">前往留言板</a>
+            </div>
+
+            <div class="content-section full-width" style="text-align:center;">
+                <h2 style="justify-content:center;">特别鸣谢</h2>
+                <p>在此感谢 <span style="color:rgba(100,180,255,0.95); font-weight:600;">青绿色的苏打水</span>、<span style="color:rgba(100,180,255,0.95); font-weight:600;">殇</span> 的支持</p>
+            </div>
+
         </div>
-
-        <div class="content-section">
-            <h2>这是什么</h2>
-            <p>这是一个个人搭建的小网站，包含一个留言板功能。你可以在这里留下任何想说的话——对朋友的感谢、匿名告白、或者随便聊聊。</p>
-            <p>所有留言都会实时显示给所有访客，不需要注册就能使用。</p>
-        </div>
-
-        <div class="content-section">
-            <h2>隐私说明</h2>
-            <p>留言数据公开存储在 GitHub 仓库中，任何人都可以看到。</p>
-            <p>请不要在留言中填写敏感个人信息（如密码、手机号等）。</p>
-            <p>管理员可以删除不当留言。</p>
-        </div>
-
-        <div class="content-section" style="text-align:center;">
-            <h2 style="justify-content:center;">去留言</h2>
-            <p>看完介绍了，去留言板写两句吧！</p>
-            <a href="board.html" style="display:inline-block; background:linear-gradient(135deg, rgba(100,180,255,0.3) 0%, rgba(60,120,255,0.2) 100%); color:rgba(255,255,255,0.95); padding:12px 36px; border-radius:50px; text-decoration:none; font-size:1rem; font-weight:600; transition:all 0.3s; margin-top:8px; border:1px solid rgba(100,180,255,0.2);">前往留言板</a>
-        </div>
-
-        <div class="content-section" style="text-align:center;">
-            <h2 style="justify-content:center;">特别鸣谢</h2>
-            <p>在此感谢 <span style="color:rgba(100,180,255,0.95); font-weight:600;">青绿色的苏打水</span>、<span style="color:rgba(100,180,255,0.95); font-weight:600;">殇</span> 的支持</p>
-        </div>
-
     </section>
 
     <!-- ===== 页脚 ===== -->
