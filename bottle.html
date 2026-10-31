@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>漂流瓶 · 望潮</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+            background: #000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ===== 背景 ===== */
+        .bg-layer {
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse at 50% 60%, #0a1525 0%, #061018 40%, #02060c 70%, #000 100%);
+        }
+        .bg-layer::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 30% 80%, rgba(20, 60, 100, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 20%, rgba(30, 80, 120, 0.1) 0%, transparent 50%);
+        }
+        canvas#starfield { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        .vignette {
+            position: fixed; inset: 0; z-index: 2; pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0.8) 100%);
+        }
+
+        /* ===== 海浪动画 ===== */
+        .wave-container {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 35vh; z-index: 3; pointer-events: none;
+            overflow: hidden;
+        }
+        .wave {
+            position: absolute; bottom: 0; left: -50%; width: 200%; height: 100%;
+            background: radial-gradient(ellipse at center bottom, rgba(30, 80, 140, 0.12), transparent 70%);
+            animation: waveMove 12s ease-in-out infinite;
+        }
+        .wave:nth-child(2) { animation-duration: 18s; animation-delay: -3s; opacity: 0.7; }
+        .wave:nth-child(3) { animation-duration: 24s; animation-delay: -6s; opacity: 0.5; }
+        @keyframes waveMove {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-5%) translateY(-10px); }
+        }
+
+        /* ===== 主容器 ===== */
+        .main-container {
+            position: relative; z-index: 10;
+            height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        /* ===== 返回按钮 ===== */
+        .back-btn {
+            position: fixed; top: 18px; left: 18px; z-index: 20;
+            display: flex; align-items: center; gap: 6px;
+            color: rgba(180, 210, 255, 0.5); font-size: 0.8rem;
+            text-decoration: none; letter-spacing: 0.08em;
+            transition: color 0.3s ease;
+        }
+        .back-btn:hover { color: rgba(180, 210, 255, 0.9); }
+        .back-arrow { font-size: 1.2rem; }
+
+        /* ===== 标题区 ===== */
+        .title-zone { text-align: center; margin-bottom: 32px; }
+        .title-main {
+            font-size: 1.8rem; font-weight: 200; letter-spacing: 0.35em;
+            color: rgba(220, 235, 255, 0.9);
+            text-shadow: 0 0 30px rgba(80, 140, 220, 0.3);
+        }
+        .title-sub {
+            font-size: 0.6rem; letter-spacing: 0.25em; margin-top: 8px;
+            color: rgba(150, 180, 220, 0.4);
+        }
+        .title-poem {
+            font-size: 0.72rem; margin-top: 16px; line-height: 1.8;
+            color: rgba(160, 190, 220, 0.35); font-style: italic;
+        }
+
+        /* ===== 瓶子图标 ===== */
+        .bottle-icon-zone {
+            position: relative; margin-bottom: 28px;
+            display: flex; justify-content: center;
+        }
+        .bottle-svg {
+            width: 64px; height: 64px;
+            animation: bottleFloat 4s ease-in-out infinite;
+        }
+        @keyframes bottleFloat {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+
+        /* ===== 按钮区 ===== */
+        .action-zone {
+            display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+        }
+        .action-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            padding: 20px 32px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(120, 180, 255, 0.15);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-appearance: none;
+            font-family: inherit;
+        }
+        .action-btn:hover {
+            background: rgba(120, 180, 255, 0.08);
+            border-color: rgba(120, 180, 255, 0.35);
+            box-shadow: 0 4px 30px rgba(80, 140, 220, 0.12);
+            transform: translateY(-2px);
+        }
+        .action-btn:active { transform: scale(0.96); }
+        .action-btn svg { width: 32px; height: 32px; }
+        .action-btn .btn-label {
+            font-size: 0.88rem; color: rgba(220, 235, 255, 0.85);
+            letter-spacing: 0.15em;
+        }
+        .action-btn .btn-sub {
+            font-size: 0.58rem; color: rgba(150, 180, 220, 0.4);
+            letter-spacing: 0.1em;
+        }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ===== 弹窗通用 ===== */
+        .overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0, 0, 0, 0.65);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center; justify-content: center;
+        }
+        .overlay.show { display: flex; }
+        .modal-box {
+            width: 90%; max-width: 400px;
+            padding: 32px 24px;
+            background: rgba(10, 18, 32, 0.95);
+            border: 1px solid rgba(120, 180, 255, 0.15);
+            border-radius: 20px;
+            text-align: center;
+            transform: scale(0.9); transition: transform 0.4s ease;
+        }
+        .overlay.show .modal-box { transform: scale(1); }
+
+        /* ===== 扔瓶子弹窗 ===== */
+        .throw-textarea {
+            width: 100%; min-height: 120px; resize: none;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(120, 180, 255, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: rgba(220, 235, 255, 0.9);
+            font-size: 0.9rem; line-height: 1.7;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            -webkit-appearance: none;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+        }
+        .throw-textarea:focus {
+            border-color: rgba(120, 180, 255, 0.4);
+            box-shadow: 0 0 20px rgba(80, 140, 220, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .throw-textarea::placeholder {
+            color: rgba(150, 180, 220, 0.25);
+        }
+        .char-count {
+            text-align: right; font-size: 0.68rem;
+            color: rgba(150, 180, 220, 0.3);
+            margin-top: 6px;
+        }
+        .char-count.over { color: rgba(255, 120, 120, 0.6); }
+
+        /* ===== 捞瓶子弹窗 ===== */
+        .bottle-card {
+            position: relative;
+            padding: 28px 24px;
+        }
+        .bottle-card-icon {
+            font-size: 1.8rem; margin-bottom: 16px;
+            color: rgba(150, 200, 255, 0.5);
+            text-shadow: 0 0 30px rgba(100, 180, 255, 0.3);
+        }
+        .bottle-message {
+            font-size: 0.95rem; line-height: 1.9;
+            color: rgba(220, 235, 255, 0.88);
+            padding: 16px 0;
+            border-top: 1px solid rgba(120, 180, 255, 0.08);
+            border-bottom: 1px solid rgba(120, 180, 255, 0.08);
+            margin: 12px 0;
+            word-break: break-word;
+        }
+        .bottle-time {
+            font-size: 0.65rem; color: rgba(150, 180, 220, 0.3);
+            letter-spacing: 0.1em;
+        }
+        .bottle-replies {
+            margin-top: 16px; text-align: left;
+        }
+        .reply-item {
+            font-size: 0.82rem; line-height: 1.7;
+            color: rgba(180, 200, 220, 0.6);
+            padding: 8px 12px; margin-top: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 2px solid rgba(120, 180, 255, 0.12);
+            border-radius: 0 8px 8px 0;
+            word-break: break-word;
+        }
+        .reply-label {
+            font-size: 0.65rem; color: rgba(150, 180, 220, 0.3);
+            letter-spacing: 0.1em; margin-bottom: 8px;
+        }
+        .reply-input-zone {
+            margin-top: 20px; display: flex; gap: 8px;
+        }
+        .reply-input {
+            flex: 1; padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(120, 180, 255, 0.15);
+            border-radius: 10px;
+            color: rgba(220, 235, 255, 0.9);
+            font-size: 0.85rem; font-family: inherit;
+            outline: none; transition: border-color 0.3s ease;
+        }
+        .reply-input:focus { border-color: rgba(120, 180, 255, 0.4); }
+        .reply-input::placeholder { color: rgba(150, 180, 220, 0.25); }
+
+        /* ===== 通用按钮 ===== */
+        .modal-btn {
+            margin-top: 18px; padding: 12px 40px;
+            background: rgba(120, 180, 255, 0.1);
+            border: 1px solid rgba(120, 180, 255, 0.25);
+            border-radius: 50px;
+            color: rgba(220, 235, 255, 0.85);
+            font-size: 0.88rem; letter-spacing: 0.2em;
+            cursor: pointer; transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+        }
+        .modal-btn:hover {
+            background: rgba(120, 180, 255, 0.18);
+            border-color: rgba(120, 180, 255, 0.45);
+            box-shadow: 0 0 20px rgba(80, 140, 220, 0.15);
+            color: rgba(255, 255, 255, 1);
+        }
+        .modal-btn:active { transform: scale(0.95); }
+        .modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .modal-btn.secondary {
+            background: transparent;
+            border-color: rgba(150, 180, 220, 0.12);
+            color: rgba(150, 180, 220, 0.5);
+        }
+        .modal-btn.secondary:hover {
+            border-color: rgba(150, 180, 220, 0.3);
+            color: rgba(180, 210, 240, 0.8);
+            box-shadow: none;
+        }
+        .modal-btns { display: flex; gap: 12px; justify-content: center; }
+        .modal-hint {
+            font-size: 0.68rem; color: rgba(150, 180, 220, 0.3);
+            letter-spacing: 0.12em; margin-top: 14px;
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            padding: 12px 28px; z-index: 300;
+            background: rgba(10, 18, 32, 0.95);
+            border: 1px solid rgba(120, 180, 255, 0.2);
+            border-radius: 50px;
+            color: rgba(220, 235, 255, 0.85);
+            font-size: 0.82rem; letter-spacing: 0.1em;
+            opacity: 0; transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        /* ===== 加载动画 ===== */
+        .loading-spin {
+            display: inline-block; width: 20px; height: 20px;
+            border: 2px solid rgba(120, 180, 255, 0.15);
+            border-top-color: rgba(120, 180, 255, 0.5);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== 瓶子捞取动画 ===== */
+        .salvage-anim {
+            position: fixed; inset: 0; z-index: 250;
+            display: none;
+            align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .salvage-anim.show { display: flex; }
+        .salvage-anim .bottle-rise {
+            animation: bottleRise 2.5s ease-out forwards;
+        }
+        @keyframes bottleRise {
+            0% { transform: translateY(300px) rotate(0deg); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        }
+
+        /* ===== 空海提示 ===== */
+        .empty-sea {
+            text-align: center; padding: 20px;
+        }
+        .empty-sea-icon { font-size: 2rem; margin-bottom: 12px; color: rgba(150, 200, 255, 0.3); }
+        .empty-sea-text { font-size: 0.82rem; color: rgba(150, 180, 220, 0.4); line-height: 1.8; }
+
+        /* ===== 统计 ===== */
+        .stats {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 15; text-align: center;
+            font-size: 0.62rem; color: rgba(150, 180, 220, 0.25);
+            letter-spacing: 0.15em;
+        }
+
+        /* ===== 管理员入口 ===== */
+        .admin-entry {
+            position: fixed; bottom: 16px; right: 18px; z-index: 20;
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(150, 180, 220, 0.12);
+            font-size: 1.1rem; cursor: pointer;
+            transition: color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            background: none; border: none; padding: 0;
+            -webkit-appearance: none; font-family: inherit;
+        }
+        .admin-entry:hover { color: rgba(150, 180, 220, 0.4); }
+
+        /* ===== 管理员面板 ===== */
+        .admin-panel {
+            width: 95%; max-width: 480px; max-height: 80vh;
+            padding: 24px 20px;
+            overflow-y: auto;
+        }
+        .admin-panel::-webkit-scrollbar { width: 3px; }
+        .admin-panel::-webkit-scrollbar-track { background: transparent; }
+        .admin-panel::-webkit-scrollbar-thumb { background: rgba(120,180,255,0.15); border-radius: 2px; }
+
+        .admin-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid rgba(120, 180, 255, 0.1);
+        }
+        .admin-title {
+            font-size: 1.1rem; font-weight: 300; letter-spacing: 0.2em;
+            color: rgba(220, 235, 255, 0.9);
+        }
+        .admin-title-sub {
+            font-size: 0.58rem; letter-spacing: 0.15em; margin-top: 4px;
+            color: rgba(150, 180, 220, 0.35);
+        }
+
+        .admin-bottle-list {
+            text-align: left; margin-bottom: 20px;
+        }
+        .admin-bottle-item {
+            padding: 14px 16px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(120, 180, 255, 0.08);
+            border-radius: 12px;
+            transition: border-color 0.3s ease;
+        }
+        .admin-bottle-item:hover {
+            border-color: rgba(120, 180, 255, 0.2);
+        }
+        .admin-bottle-content {
+            font-size: 0.85rem; line-height: 1.7;
+            color: rgba(220, 235, 255, 0.8);
+            word-break: break-word;
+        }
+        .admin-bottle-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 8px;
+        }
+        .admin-bottle-info {
+            font-size: 0.62rem; color: rgba(150, 180, 220, 0.3);
+            letter-spacing: 0.08em;
+        }
+        .admin-bottle-del {
+            padding: 4px 14px;
+            background: rgba(255, 80, 80, 0.08);
+            border: 1px solid rgba(255, 80, 80, 0.15);
+            border-radius: 8px;
+            color: rgba(255, 120, 120, 0.6);
+            font-size: 0.7rem; cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .admin-bottle-del:hover {
+            background: rgba(255, 80, 80, 0.15);
+            border-color: rgba(255, 80, 80, 0.35);
+            color: rgba(255, 150, 150, 0.9);
+        }
+        .admin-bottle-del:active { transform: scale(0.95); }
+
+        .admin-replies {
+            margin-top: 8px; padding-left: 12px;
+        }
+        .admin-reply-item {
+            font-size: 0.78rem; line-height: 1.6;
+            color: rgba(180, 200, 220, 0.5);
+            padding: 6px 10px; margin-top: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 2px solid rgba(120, 180, 255, 0.08);
+            border-radius: 0 6px 6px 0;
+            word-break: break-word;
+        }
+
+        .admin-actions {
+            display: flex; gap: 12px; justify-content: center; margin-top: 20px;
+        }
+        .admin-btn-danger {
+            padding: 10px 24px;
+            background: rgba(255, 80, 80, 0.08);
+            border: 1px solid rgba(255, 80, 80, 0.2);
+            border-radius: 50px;
+            color: rgba(255, 150, 150, 0.7);
+            font-size: 0.78rem; letter-spacing: 0.15em;
+            cursor: pointer; transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .admin-btn-danger:hover {
+            background: rgba(255, 80, 80, 0.15);
+            border-color: rgba(255, 80, 80, 0.4);
+            color: rgba(255, 180, 180, 0.9);
+        }
+        .admin-btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .admin-login-input {
+            width: 100%; padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(120, 180, 255, 0.15);
+            border-radius: 12px;
+            color: rgba(220, 235, 255, 0.9);
+            font-size: 0.88rem; font-family: inherit;
+            outline: none; text-align: center;
+            letter-spacing: 0.1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .admin-login-input:focus {
+            border-color: rgba(120, 180, 255, 0.4);
+            box-shadow: 0 0 20px rgba(80, 140, 220, 0.1);
+        }
+        .admin-login-input::placeholder {
+            color: rgba(150, 180, 220, 0.2);
+            letter-spacing: 0.05em;
+        }
+
+        .admin-empty {
+            text-align: center; padding: 30px 20px;
+            font-size: 0.82rem; color: rgba(150, 180, 220, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <canvas id="starfield"></canvas>
+    <div class="vignette"></div>
+    <div class="wave-container">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <a href="index.html" class="back-btn">
+        <span class="back-arrow">←</span>
+        <span>回到星海</span>
+    </a>
+
+    <div class="main-container">
+        <div class="title-zone">
+            <div class="title-main">漂流瓶</div>
+            <div class="title-sub">DRIFTING BOTTLE</div>
+            <div class="title-poem">
+                扔一句话进海 · 潮水当邮差<br>
+                你不知道谁会捡到 · 也不知道谁扔的
+            </div>
+        </div>
+
+        <div class="bottle-icon-zone">
+            <svg class="bottle-svg" viewBox="0 0 64 64" fill="none">
+                <path d="M24 8 L40 8 L40 14 L44 18 L44 48 C44 52 42 56 38 56 L26 56 C22 56 20 52 20 48 L20 18 L24 14 Z"
+                      stroke="rgba(120,180,255,0.4)" stroke-width="1.5" fill="rgba(120,180,255,0.04)"/>
+                <rect x="28" y="12" width="8" height="2" rx="1" fill="rgba(120,180,255,0.3)"/>
+                <circle cx="32" cy="34" r="1.5" fill="rgba(150,200,255,0.4)"/>
+            </svg>
+        </div>
+
+        <div class="action-zone">
+            <button class="action-btn" id="throwBtn">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2 L12 22 M6 8 L12 2 L18 8" stroke="rgba(120,180,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="btn-label">扔进海里</span>
+                <span class="btn-sub">THROW</span>
+            </button>
+            <button class="action-btn" id="salvageBtn">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 22 L12 2 M6 16 L12 22 L18 16" stroke="rgba(120,180,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="btn-label">捞一个</span>
+                <span class="btn-sub">SALVAGE</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="stats" id="stats">海中有 0 个瓶子在漂流</div>
+
+    <!-- 扔瓶子弹窗 -->
+    <div class="overlay" id="throwOverlay">
+        <div class="modal-box">
+            <div style="font-size:1.3rem; margin-bottom:8px; color:rgba(150,200,255,0.5);">✧</div>
+            <div style="font-size:0.78rem; color:rgba(180,200,230,0.5); letter-spacing:0.15em; margin-bottom:20px;">写下你想扔进海里的话</div>
+            <textarea class="throw-textarea" id="throwInput" placeholder="可以是烦恼 可以是憋着不敢说的&#10;也可以是无聊的碎碎念&#10;扔完就沉了 潮水会带它去远方" maxlength="300" enterkeyhint="send"></textarea>
+            <div class="char-count"><span id="charCount">0</span>/300</div>
+            <div class="modal-btns">
+                <button class="modal-btn secondary" id="throwCancel">取消</button>
+                <button class="modal-btn" id="throwSend">扔出去</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 捞瓶子动画 -->
+    <div class="salvage-anim" id="salvageAnim">
+        <svg class="bottle-svg bottle-rise" viewBox="0 0 64 64" fill="none" style="width:80px;height:80px;">
+            <path d="M24 8 L40 8 L40 14 L44 18 L44 48 C44 52 42 56 38 56 L26 56 C22 56 20 52 20 48 L20 18 L24 14 Z"
+                  stroke="rgba(120,180,255,0.5)" stroke-width="1.5" fill="rgba(120,180,255,0.06)"/>
+            <rect x="28" y="12" width="8" height="2" rx="1" fill="rgba(120,180,255,0.3)"/>
+        </svg>
+    </div>
+
+    <!-- 捞到瓶子弹窗 -->
+    <div class="overlay" id="salvageOverlay">
+        <div class="modal-box bottle-card" id="bottleCard">
+            <!-- 动态填充 -->
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 管理员入口 -->
+    <button class="admin-entry" id="adminEntry" title="管理">⚙</button>
+
+    <!-- 管理员弹窗 -->
+    <div class="overlay" id="adminOverlay">
+        <div class="modal-box admin-panel" id="adminPanel">
+            <!-- 动态填充 -->
+        </div>
+    </div>
+
+    <script>
+        // ===== 星空背景 =====
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            var count = Math.floor((canvas.width * canvas.height) / 12000);
+            for (var i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 0.8 + 0.2,
+                    tw: Math.random() * Math.PI * 2,
+                    sp: 0.005 + Math.random() * 0.015
+                });
+            }
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (var s of stars) {
+                s.tw += s.sp;
+                var a = 0.3 + Math.sin(s.tw) * 0.25;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(150, 200, 255, ' + a + ')';
+                ctx.fill();
+            }
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        // ===== GitHub 存储 =====
+        var GH_TOKEN = ['github_pat_','11CR3NF3I0','ZBJzKgb1Dn','LH_A156182','be1TmOD1JT','bcwxbcYDTx','4acfp6lzoO','g1V3RdHUVG','TG5WQv5Hgu','II'].join('');
+        var GH_OWNER = '3149969524';
+        var GH_REPO = 'my-data';
+        var GH_FILE = 'bottles.json';
+        var API_URL = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE;
+        var CDN_URL = 'https://cdn.jsdelivr.net/gh/' + GH_OWNER + '/' + GH_REPO + '@main/' + GH_FILE;
+        var PURGE_URL = 'https://purge.jsdelivr.net/gh/' + GH_OWNER + '/' + GH_REPO + '@main/' + GH_FILE;
+
+        var MAX_BOTTLES = 300;
+        var lastSha = null;
+        var isBusy = false;
+        var currentBottle = null;
+
+        function showToast(msg, dur) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, dur || 2500);
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(ts) {
+            var d = new Date(ts);
+            var now = Date.now();
+            var diff = now - ts;
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff/60000) + '分钟前';
+            if (diff < 86400000) return Math.floor(diff/3600000) + '小时前';
+            if (diff < 2592000000) return Math.floor(diff/86400000) + '天前';
+            return (d.getMonth()+1) + '月' + d.getDate() + '日';
+        }
+
+        function genId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        // ===== 读取瓶子数据 =====
+        function fetchWithTimeout(url, options, timeout) {
+            timeout = timeout || 15000;
+            return Promise.race([
+                fetch(url, options),
+                new Promise(function(_, reject) {
+                    setTimeout(function() { reject(new Error('timeout')); }, timeout);
+                })
+            ]);
+        }
+
+        async function fetchBottles() {
+            // 先尝试 CDN
+            try {
+                var resp = await fetchWithTimeout(CDN_URL + '?t=' + Date.now(), {}, 8000);
+                if (resp.ok) {
+                    var data = await resp.json();
+                    return { bottles: data.bottles || [], sha: null };
+                }
+            } catch(e) {}
+            // 再尝试 API
+            try {
+                var resp2 = await fetchWithTimeout(API_URL + '?t=' + Date.now(), {
+                    headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
+                }, 12000);
+                if (resp2.ok) {
+                    var data2 = await resp2.json();
+                    lastSha = data2.sha;
+                    var content = JSON.parse(decodeURIComponent(escape(atob(data2.content.replace(/\n/g, '')))));
+                    return { bottles: content.bottles || [], sha: data2.sha };
+                }
+            } catch(e) {}
+            return { bottles: [], sha: null };
+        }
+
+        async function getSha() {
+            try {
+                var resp = await fetchWithTimeout(API_URL + '?t=' + Date.now(), {
+                    headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
+                }, 12000);
+                if (resp.ok) {
+                    var data = await resp.json();
+                    lastSha = data.sha;
+                    return data;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        async function saveBottles(bottles) {
+            var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify({ bottles: bottles }))));
+            var putBody = { message: 'Update bottles', content: contentB64 };
+            if (lastSha) putBody.sha = lastSha;
+
+            var resp = await fetchWithTimeout(API_URL, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ' + GH_TOKEN,
+                    'Accept': 'application/vnd.github+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(putBody)
+            }, 20000);
+
+            if (resp && resp.ok) {
+                var data = await resp.json();
+                if (data.content && data.content.sha) lastSha = data.content.sha;
+                try { fetch(PURGE_URL); } catch(e) {}
+                return true;
+            }
+            return false;
+        }
+
+        // ===== 更新统计 =====
+        async function updateStats() {
+            var data = await fetchBottles();
+            var count = data.bottles.length;
+            document.getElementById('stats').textContent = '海中有 ' + count + ' 个瓶子在漂流';
+        }
+
+        // ===== 扔瓶子 =====
+        var throwOverlay = document.getElementById('throwOverlay');
+        var throwInput = document.getElementById('throwInput');
+        var throwSend = document.getElementById('throwSend');
+        var throwCancel = document.getElementById('throwCancel');
+        var charCount = document.getElementById('charCount');
+        var throwBtn = document.getElementById('throwBtn');
+        var salvageBtn = document.getElementById('salvageBtn');
+
+        function openThrow() {
+            throwOverlay.style.display = 'flex';
+            throwInput.value = '';
+            charCount.textContent = '0';
+            charCount.classList.remove('over');
+            setTimeout(function() { throwInput.focus(); }, 300);
+        }
+
+        function closeThrow() {
+            throwOverlay.style.display = 'none';
+        }
+
+        throwBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openThrow();
+        });
+        throwBtn.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            openThrow();
+        }, { passive: false });
+
+        throwSend.addEventListener('click', function(e) {
+            e.stopPropagation();
+            doThrow();
+        });
+        throwCancel.addEventListener('click', function(e) {
+            e.stopPropagation();
+            closeThrow();
+        });
+
+        throwInput.addEventListener('input', function() {
+            var len = throwInput.value.length;
+            charCount.textContent = len;
+            if (len > 280) charCount.classList.add('over');
+            else charCount.classList.remove('over');
+        });
+
+        throwOverlay.addEventListener('click', function(e) {
+            if (e.target === throwOverlay) closeThrow();
+        });
+
+        async function doThrow() {
+            var text = throwInput.value.trim();
+            if (!text) { showToast('瓶子不能是空的 🫙'); return; }
+            if (isBusy) return;
+            isBusy = true;
+            throwSend.textContent = '扔出去...';
+            throwSend.disabled = true;
+
+            try {
+                var data = await fetchBottles();
+                lastSha = data.sha || lastSha;
+                var bottles = data.bottles;
+
+                // 获取最新 sha
+                var apiData = await getSha();
+                if (apiData) {
+                    lastSha = apiData.sha;
+                    var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                    bottles = content.bottles || [];
+                }
+
+                var newBottle = {
+                    id: genId(),
+                    content: text,
+                    time: Date.now(),
+                    replies: [],
+                    drifts: 0
+                };
+                bottles.push(newBottle);
+                if (bottles.length > MAX_BOTTLES) bottles = bottles.slice(bottles.length - MAX_BOTTLES);
+
+                var ok = await saveBottles(bottles);
+                if (ok) {
+                    showToast('瓶子已扔进海里 ✅');
+                    closeThrow();
+                    updateStats();
+                } else {
+                    showToast('网络波动，再试一次 ❌');
+                }
+            } catch(e) {
+                showToast('网络错误，请重试 ❌');
+            }
+
+            isBusy = false;
+            throwSend.textContent = '扔出去';
+            throwSend.disabled = false;
+        }
+
+        throwInput.addEventListener('keydown', function(e) {
+            if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
+                e.preventDefault();
+                doThrow();
+            }
+        });
+
+        // ===== 捞瓶子 =====
+        var salvageAnim = document.getElementById('salvageAnim');
+        var salvageOverlay = document.getElementById('salvageOverlay');
+        var bottleCard = document.getElementById('bottleCard');
+
+        salvageBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            doSalvage();
+        });
+        salvageBtn.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            doSalvage();
+        }, { passive: false });
+
+        async function doSalvage() {
+            if (isBusy) return;
+            isBusy = true;
+            salvageBtn.style.opacity = '0.5';
+
+            // 播放捞取动画
+            salvageAnim.style.display = 'flex';
+
+            try {
+                var data = await fetchBottles();
+                var bottles = data.bottles;
+
+                setTimeout(function() {
+                    salvageAnim.style.display = 'none';
+
+                    if (!bottles || bottles.length === 0) {
+                        bottleCard.innerHTML =
+                            '<div class="empty-sea">' +
+                            '<div class="empty-sea-icon">🌊</div>' +
+                            '<div class="empty-sea-text">海里还没有瓶子<br>做第一个扔瓶子的人吧</div>' +
+                            '</div>' +
+                            '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeSalvage()">关闭</button></div>';
+                        salvageOverlay.style.display = 'flex';
+                        isBusy = false;
+                        salvageBtn.style.opacity = '1';
+                        return;
+                    }
+
+                    // 随机捞一个
+                    var idx = Math.floor(Math.random() * bottles.length);
+                    currentBottle = bottles[idx];
+                    currentBottle._idx = idx;
+
+                    renderBottle(currentBottle);
+                    salvageOverlay.style.display = 'flex';
+
+                    // 增加漂流次数
+                    bottles[idx].drifts = (bottles[idx].drifts || 0) + 1;
+                    var apiData = await getSha();
+                    if (apiData) {
+                        lastSha = apiData.sha;
+                        var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                        var freshBottles = content.bottles || [];
+                        if (idx < freshBottles.length) {
+                            freshBottles[idx].drifts = (freshBottles[idx].drifts || 0) + 1;
+                            await saveBottles(freshBottles);
+                        }
+                    }
+
+                    isBusy = false;
+                    salvageBtn.style.opacity = '1';
+                }, 2200);
+            } catch(e) {
+                salvageAnim.style.display = 'none';
+                showToast('海面风浪太大，再试一次 ❌');
+                isBusy = false;
+                salvageBtn.style.opacity = '1';
+            }
+        }
+
+        function renderBottle(btl) {
+            var repliesHtml = '';
+            if (btl.replies && btl.replies.length > 0) {
+                repliesHtml = '<div class="bottle-replies"><div class="reply-label">— 潮水带回的回信 —</div>';
+                for (var i = 0; i < btl.replies.length; i++) {
+                    repliesHtml += '<div class="reply-item">' + escapeHtml(btl.replies[i].content) +
+                        '<span style="display:block;font-size:0.6rem;color:rgba(150,180,220,0.2);margin-top:4px;">' +
+                        formatTime(btl.replies[i].time) + '</span></div>';
+                }
+                repliesHtml += '</div>';
+            }
+
+            var driftText = btl.drifts > 0 ? '已被捞起 ' + btl.drifts + ' 次' : '第一次被捞起';
+
+            bottleCard.innerHTML =
+                '<div class="bottle-card-icon">✧</div>' +
+                '<div class="bottle-message">' + escapeHtml(btl.content) + '</div>' +
+                '<div class="bottle-time">' + formatTime(btl.time) + ' · ' + driftText + '</div>' +
+                repliesHtml +
+                '<div class="reply-input-zone">' +
+                    '<input type="text" class="reply-input" id="replyInput" placeholder="回一句，扔回海里…" maxlength="200" enterkeyhint="send" />' +
+                '</div>' +
+                '<div class="modal-btns" style="margin-top:14px;">' +
+                    '<button class="modal-btn secondary" onclick="closeSalvage()">扔回海里</button>' +
+                    '<button class="modal-btn" id="replySendBtn" onclick="doReply()">回信</button>' +
+                '</div>' +
+                '<div class="modal-hint">回信会附在瓶子上 · 继续漂流</div>';
+
+            setTimeout(function() {
+                var ri = document.getElementById('replyInput');
+                if (ri) ri.focus();
+            }, 400);
+        }
+
+        async function doReply() {
+            if (!currentBottle) return;
+            var input = document.getElementById('replyInput');
+            var text = input.value.trim();
+            if (!text) { showToast('回信不能是空的 ✧'); return; }
+            if (isBusy) return;
+            isBusy = true;
+
+            var btn = document.getElementById('replySendBtn');
+            btn.textContent = '发送中…';
+            btn.disabled = true;
+
+            try {
+                var apiData = await getSha();
+                if (!apiData) { showToast('获取数据失败 ❌'); isBusy = false; btn.textContent='回信'; btn.disabled=false; return; }
+                lastSha = apiData.sha;
+                var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                var bottles = content.bottles || [];
+
+                // 找到对应瓶子
+                var idx = currentBottle._idx;
+                if (idx >= 0 && idx < bottles.length && bottles[idx].id === currentBottle.id) {
+                    if (!bottles[idx].replies) bottles[idx].replies = [];
+                    bottles[idx].replies.push({ content: text, time: Date.now() });
+                } else {
+                    // 按 id 查找
+                    var found = false;
+                    for (var i = 0; i < bottles.length; i++) {
+                        if (bottles[i].id === currentBottle.id) {
+                            if (!bottles[i].replies) bottles[i].replies = [];
+                            bottles[i].replies.push({ content: text, time: Date.now() });
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) { showToast('瓶子已漂远 ❌'); isBusy = false; btn.textContent='回信'; btn.disabled=false; return; }
+                }
+
+                var ok = await saveBottles(bottles);
+                if (ok) {
+                    showToast('回信已附在瓶子上 ✅');
+                    closeSalvage();
+                } else {
+                    showToast('发送失败，请重试 ❌');
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+
+            isBusy = false;
+            btn.textContent = '回信';
+            btn.disabled = false;
+        }
+
+        function closeSalvage() {
+            salvageOverlay.style.display = 'none';
+            currentBottle = null;
+        }
+
+        salvageOverlay.addEventListener('click', function(e) {
+            if (e.target === salvageOverlay) closeSalvage();
+        });
+
+        // ===== 回车发送回信 =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                if (e.target && e.target.id === 'replyInput') {
+                    e.preventDefault();
+                    doReply();
+                }
+            }
+        });
+
+        // ===== 管理员功能 =====
+        var ADMIN_PASSWORD = 'hmj1314520';
+        var isAdmin = false;
+        var adminOverlay = document.getElementById('adminOverlay');
+        var adminPanel = document.getElementById('adminPanel');
+
+        function openAdmin() {
+            if (isAdmin) {
+                openAdminPanel();
+            } else {
+                showAdminLogin();
+            }
+        }
+
+        var adminEntry = document.getElementById('adminEntry');
+        adminEntry.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openAdmin();
+        });
+        adminEntry.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            openAdmin();
+        }, { passive: false });
+
+        adminOverlay.addEventListener('click', function(e) {
+            if (e.target === adminOverlay) closeAdmin();
+        });
+
+        function showAdminLogin() {
+            adminPanel.innerHTML =
+                '<div class="admin-header" style="justify-content:center;">' +
+                    '<div style="text-align:center;">' +
+                        '<div class="admin-title" style="font-size:1rem;">管理员入口</div>' +
+                        '<div class="admin-title-sub">ADMIN ACCESS</div>' +
+                    '</div>' +
+                '</div>' +
+                '<input type="password" class="admin-login-input" id="adminPwdInput" placeholder="输入管理密码" maxlength="20" enterkeyhint="send" />' +
+                '<div class="modal-btns" style="margin-top:18px;">' +
+                    '<button class="modal-btn secondary" onclick="closeAdmin()">取消</button>' +
+                    '<button class="modal-btn" id="adminLoginBtn" onclick="doAdminLogin()">进入</button>' +
+                '</div>' +
+                '<div class="modal-hint">输入密码后可管理所有漂流瓶</div>';
+            adminOverlay.style.display = 'flex';
+            setTimeout(function() {
+                var inp = document.getElementById('adminPwdInput');
+                if (inp) {
+                    inp.focus();
+                    inp.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.keyCode === 13) {
+                            e.preventDefault();
+                            doAdminLogin();
+                        }
+                    });
+                }
+            }, 300);
+        }
+
+        function doAdminLogin() {
+            var input = document.getElementById('adminPwdInput');
+            var btn = document.getElementById('adminLoginBtn');
+            if (!input) return;
+            var pwd = input.value.trim();
+            if (!pwd) { showToast('请输入密码'); return; }
+            btn.textContent = '验证中…';
+            btn.disabled = true;
+            setTimeout(function() {
+                if (pwd === ADMIN_PASSWORD) {
+                    isAdmin = true;
+                    showToast('管理员已登录 ✅');
+                    openAdminPanel();
+                } else {
+                    showToast('密码错误 ❌');
+                    btn.textContent = '进入';
+                    btn.disabled = false;
+                    input.value = '';
+                    input.focus();
+                }
+            }, 600);
+        }
+
+        function closeAdmin() {
+            adminOverlay.style.display = 'none';
+        }
+
+        async function openAdminPanel() {
+            adminPanel.innerHTML =
+                '<div style="text-align:center;padding:30px 20px;">' +
+                    '<div class="loading-spin"></div>' +
+                    '<div style="margin-top:12px;font-size:0.78rem;color:rgba(150,180,220,0.4);letter-spacing:0.1em;">正在加载瓶子…</div>' +
+                '</div>';
+            adminOverlay.style.display = 'flex';
+
+            try {
+                var apiData = await getSha();
+                if (!apiData) {
+                    adminPanel.innerHTML =
+                        '<div class="admin-empty">无法加载瓶子数据，请检查网络</div>' +
+                        '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+                    return;
+                }
+                lastSha = apiData.sha;
+                var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                var bottles = content.bottles || [];
+                renderAdminList(bottles);
+            } catch(e) {
+                adminPanel.innerHTML =
+                    '<div class="admin-empty">加载失败，请重试</div>' +
+                    '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+            }
+        }
+
+        function renderAdminList(bottles) {
+            if (bottles.length === 0) {
+                adminPanel.innerHTML =
+                    '<div class="admin-header">' +
+                        '<div><div class="admin-title">管理面板</div><div class="admin-title-sub">ADMIN PANEL</div></div>' +
+                    '</div>' +
+                    '<div class="admin-empty">海里还没有瓶子</div>' +
+                    '<div class="modal-btns"><button class="modal-btn secondary" onclick="closeAdmin()">关闭</button></div>';
+                return;
+            }
+
+            var html = '<div class="admin-header">' +
+                '<div><div class="admin-title">管理面板</div><div class="admin-title-sub">ADMIN PANEL</div></div>' +
+                '<div style="font-size:0.68rem;color:rgba(150,180,220,0.3);">共 ' + bottles.length + ' 个瓶子</div>' +
+            '</div>' +
+            '<div class="admin-bottle-list">';
+
+            for (var i = 0; i < bottles.length; i++) {
+                var b = bottles[i];
+                var repliesHtml = '';
+                if (b.replies && b.replies.length > 0) {
+                    repliesHtml = '<div class="admin-replies"><div class="reply-label" style="font-size:0.6rem;color:rgba(150,180,220,0.25);margin-bottom:4px;">回信 ' + b.replies.length + ' 条</div>';
+                    for (var j = 0; j < b.replies.length; j++) {
+                        repliesHtml += '<div class="admin-reply-item">' + escapeHtml(b.replies[j].content) +
+                            '<span style="display:block;font-size:0.58rem;color:rgba(150,180,220,0.2);margin-top:2px;">' + formatTime(b.replies[j].time) + '</span></div>';
+                    }
+                    repliesHtml += '</div>';
+                }
+
+                html += '<div class="admin-bottle-item" data-bottle-id="' + b.id + '">' +
+                    '<div class="admin-bottle-content">' + escapeHtml(b.content) + '</div>' +
+                    '<div class="admin-bottle-meta">' +
+                        '<div class="admin-bottle-info">' +
+                            formatTime(b.time) + ' · 被捞起 ' + (b.drifts || 0) + ' 次' +
+                            (b.replies && b.replies.length > 0 ? ' · 回信 ' + b.replies.length : '') +
+                        '</div>' +
+                        '<button class="admin-bottle-del" onclick="deleteBottle(\'' + b.id + '\')">删除</button>' +
+                    '</div>' +
+                    repliesHtml +
+                '</div>';
+            }
+
+            html += '</div>' +
+                '<div class="admin-actions">' +
+                    '<button class="modal-btn secondary" onclick="closeAdmin()">关闭</button>' +
+                    '<button class="admin-btn-danger" id="clearAllBtn" onclick="clearAllBottles()">清空所有瓶子</button>' +
+                '</div>';
+
+            adminPanel.innerHTML = html;
+        }
+
+        async function deleteBottle(bottleId) {
+            if (!bottleId) return;
+            if (!confirm('确定删除这个瓶子吗？')) return;
+            try {
+                var apiData = await getSha();
+                if (!apiData) { showToast('获取数据失败 ❌'); return; }
+                lastSha = apiData.sha;
+                var content = JSON.parse(decodeURIComponent(escape(atob(apiData.content.replace(/\n/g, '')))));
+                var bottles = content.bottles || [];
+                var newBottles = bottles.filter(function(b) { return b.id !== bottleId; });
+                if (newBottles.length === bottles.length) {
+                    showToast('未找到该瓶子 ❌');
+                    return;
+                }
+                var ok = await saveBottles(newBottles);
+                if (ok) {
+                    showToast('瓶子已删除 ✅');
+                    renderAdminList(newBottles);
+                    updateStats();
+                } else {
+                    showToast('删除失败 ❌');
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+            }
+        }
+
+        async function clearAllBottles() {
+            if (!confirm('确定清空所有瓶子吗？此操作不可撤销！')) return;
+            var btn = document.getElementById('clearAllBtn');
+            btn.textContent = '清空中…';
+            btn.disabled = true;
+            try {
+                var ok = await saveBottles([]);
+                if (ok) {
+                    showToast('所有瓶子已清空 ✅');
+                    renderAdminList([]);
+                    updateStats();
+                } else {
+                    showToast('清空失败 ❌');
+                    btn.textContent = '清空所有瓶子';
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                showToast('网络错误 ❌');
+                btn.textContent = '清空所有瓶子';
+                btn.disabled = false;
+            }
+        }
+
+        // ===== 初始化 =====
+        updateStats();
+    </script>
+</body>
+</html>
