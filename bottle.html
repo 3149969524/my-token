@@ -1264,11 +1264,15 @@
         function renderBottle(btl) {
             var repliesHtml = '';
             if (btl.replies && btl.replies.length > 0) {
+                // 按时间倒序：最新的回信排在最上面
+                var sortedReplies = btl.replies.slice().sort(function(a, b) {
+                    return (b.time || 0) - (a.time || 0);
+                });
                 repliesHtml = '<div class="bottle-replies"><div class="reply-label">— 潮水带回的回信 —</div>';
-                for (var i = 0; i < btl.replies.length; i++) {
-                    repliesHtml += '<div class="reply-item">' + escapeHtml(btl.replies[i].content) +
+                for (var i = 0; i < sortedReplies.length; i++) {
+                    repliesHtml += '<div class="reply-item">' + escapeHtml(sortedReplies[i].content) +
                         '<span style="display:block;font-size:0.6rem;color:rgba(150,180,220,0.2);margin-top:4px;">' +
-                        formatTime(btl.replies[i].time) + '</span></div>';
+                        formatTime(sortedReplies[i].time) + '</span></div>';
                 }
                 repliesHtml += '</div>';
             }
