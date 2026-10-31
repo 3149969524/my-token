@@ -83,6 +83,7 @@
         .hotspot {
             position: absolute;
             transform: translate(-50%, -50%);
+            will-change: left, top, opacity;
             text-decoration: none;
             display: flex;
             flex-direction: column;
@@ -197,7 +198,6 @@
             animation: none;
             background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(150,200,255,1) 30%, rgba(80,140,255,0.5) 70%, transparent 100%);
             box-shadow: 0 0 50px rgba(150,200,255,1), 0 0 120px rgba(60,120,255,0.6);
-            transform: scale(1.6);
         }
 
         .hotspot-label {
@@ -321,7 +321,7 @@
                 0% { width: 10px; height: 10px; opacity: 0.8; }
                 100% { width: 45px; height: 45px; opacity: 0; }
             }
-            .hotspot.is-active .hotspot-core { transform: scale(1.4); box-shadow: 0 0 25px rgba(150,200,255,1), 0 0 55px rgba(60,120,255,0.5); }
+            .hotspot.is-active .hotspot-core { box-shadow: 0 0 25px rgba(150,200,255,1), 0 0 55px rgba(60,120,255,0.5); }
         }
     </style>
 </head>
@@ -341,35 +341,35 @@
 
     <!-- 功能热点 -->
     <div class="hotspot-layer fade-in" style="--d: 0.8s;">
-        <a href="board.html" class="hotspot" style="left: 28%; top: 38%;">
+        <a href="board.html" class="hotspot" data-orbit-angle="0" data-orbit-radius="1.6" data-orbit-tilt="0.32">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
             <span class="hotspot-label">留言板</span>
             <span class="hotspot-sub">MESSAGE</span>
         </a>
-        <a href="yu.html" class="hotspot" style="left: 68%; top: 32%;">
+        <a href="yu.html" class="hotspot" data-orbit-angle="1.26" data-orbit-radius="1.7" data-orbit-tilt="0.32">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
             <span class="hotspot-label">屿语</span>
             <span class="hotspot-sub">WHISPERS</span>
         </a>
-        <a href="yu.html#capsule" class="hotspot" style="left: 72%; top: 70%;">
+        <a href="yu.html#capsule" class="hotspot" data-orbit-angle="2.51" data-orbit-radius="1.55" data-orbit-tilt="0.32">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
             <span class="hotspot-label">时间胶囊</span>
             <span class="hotspot-sub">CAPSULE</span>
         </a>
-        <a href="about.html" class="hotspot" style="left: 22%; top: 72%;">
+        <a href="about.html" class="hotspot" data-orbit-angle="3.77" data-orbit-radius="1.7" data-orbit-tilt="0.32">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
             <span class="hotspot-label">关于</span>
             <span class="hotspot-sub">ABOUT</span>
         </a>
-        <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="hotspot" style="left: 50%; top: 18%;">
+        <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="hotspot" data-orbit-angle="5.03" data-orbit-radius="1.6" data-orbit-tilt="0.32">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
@@ -483,7 +483,7 @@
         function initBlackHole() {
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
-            const ehR = Math.min(canvas.width, canvas.height) * 0.028; // 事件视界半径
+            const ehR = Math.min(canvas.width, canvas.height) * 0.055; // 放大事件视界半径
             const diskR = ehR * 4; // 吸积盘外半径
 
             // 生成吸积盘粒子（扩散状）
@@ -495,9 +495,9 @@
                 diskParticles.push({
                     r: r,
                     angle: ang,
-                    speed: 0.003 + (1 - r / diskR) * 0.014, // 开普勒旋转
+                    speed: 0.0008 + (1 - r / diskR) * 0.0008, // 与板块轨道同速
                     // 扩散：径向漂移速度
-                    driftV: Math.random() * 0.15 + 0.02, // 向外漂移
+                    driftV: Math.random() * 0.03 + 0.005, // 向外漂移（降速匹配）
                     // 垂直偏移（不压扁在同一个平面）
                     yOffset: (Math.random() - 0.5) * ehR * 0.8,
                     size: Math.random() * 1.5 + 0.8,
@@ -877,6 +877,52 @@
         resize();
         animate();
         window.addEventListener('resize', resize);
+
+        // ===== 板块星星轨道系统 =====
+        const orbitHotspots = document.querySelectorAll('.hotspot[data-orbit-angle]');
+        const orbitState = [];
+
+        orbitHotspots.forEach((h) => {
+            orbitState.push({
+                el: h,
+                angle: parseFloat(h.dataset.orbitAngle) || 0,
+                radiusMul: parseFloat(h.dataset.orbitRadius) || 1.6,
+                tilt: parseFloat(h.dataset.orbitTilt) || 0.32,
+            });
+        });
+
+        function updateOrbits() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const baseR = Math.min(canvas.width, canvas.height) * 0.19; // 轨道基础半径
+
+            for (const o of orbitState) {
+                // 极慢旋转 — 0.0008 rad/frame ≈ 0.046°/帧
+                o.angle += 0.0008;
+                if (o.angle > Math.PI * 2) o.angle -= Math.PI * 2;
+
+                const r = baseR * o.radiusMul;
+                // 椭圆轨道：水平全径，垂直乘以 tilt（与吸积盘倾斜一致）
+                const x = cx + Math.cos(o.angle) * r;
+                const y = cy + Math.sin(o.angle) * r * o.tilt;
+
+                // 深度感：sin(angle) < 0 表示在轨道远端（背面），缩小+变暗
+                const depth = Math.sin(o.angle); // -1（远端） ~ 1（近端）
+                const scale = 0.7 + (depth + 1) * 0.15; // 0.7 ~ 1.0
+                const opacity = 0.55 + (depth + 1) * 0.225; // 0.55 ~ 1.0
+
+                o.el.style.left = x + 'px';
+                o.el.style.top = y + 'px';
+                o.el.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+                o.el.style.opacity = opacity.toFixed(3);
+                o.el.style.zIndex = depth > 0 ? 6 : 4; // 近端在上层
+            }
+
+            requestAnimationFrame(updateOrbits);
+        }
+
+        // 等初始定位完成后再启动轨道（略延迟让 fade-in 先走）
+        setTimeout(updateOrbits, 100);
 
         function resetHotspots() {
             document.querySelectorAll('.hotspot').forEach(h => {
