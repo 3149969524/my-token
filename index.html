@@ -270,9 +270,9 @@
         @media (max-width: 600px) {
             .title-main { font-size: 1.4rem; letter-spacing: 0.3em; }
             .title-sub { font-size: 0.45rem; letter-spacing: 0.4em; }
-            .hotspot-core { width: 14px; height: 14px; box-shadow: 0 0 12px rgba(100,180,255,0.7), 0 0 28px rgba(60,120,255,0.3), 0 0 55px rgba(40,80,200,0.15); }
-            .hotspot-ring { width: 36px; height: 36px; }
-            .hotspot-label { font-size: 0.68rem; letter-spacing: 0.12em; margin-top: 10px; }
+            .hotspot-core { width: 10px; height: 10px; box-shadow: 0 0 10px rgba(100,180,255,0.7), 0 0 22px rgba(60,120,255,0.3), 0 0 45px rgba(40,80,200,0.15); }
+            .hotspot-ring { width: 28px; height: 28px; }
+            .hotspot-label { font-size: 0.68rem; letter-spacing: 0.12em; margin-top: 8px; }
             .hotspot-sub { font-size: 0.48rem; }
             .nav-links { gap: 10px; }
             .nav-links a { font-size: 0.66rem; }
@@ -281,14 +281,14 @@
         }
         @media (max-width: 600px) {
             @keyframes hotspotPulse {
-                0%, 100% { box-shadow: 0 0 12px rgba(100,180,255,0.7), 0 0 28px rgba(60,120,255,0.3), 0 0 55px rgba(40,80,200,0.15); transform: scale(1); }
-                50% { box-shadow: 0 0 18px rgba(100,180,255,0.85), 0 0 38px rgba(60,120,255,0.4), 0 0 70px rgba(40,80,200,0.2); transform: scale(1.12); }
+                0%, 100% { box-shadow: 0 0 10px rgba(100,180,255,0.7), 0 0 22px rgba(60,120,255,0.3), 0 0 45px rgba(40,80,200,0.15); transform: scale(1); }
+                50% { box-shadow: 0 0 14px rgba(100,180,255,0.85), 0 0 30px rgba(60,120,255,0.4), 0 0 55px rgba(40,80,200,0.2); transform: scale(1.12); }
             }
             @keyframes ringExpand {
-                0% { width: 14px; height: 14px; opacity: 0.8; }
-                100% { width: 60px; height: 60px; opacity: 0; }
+                0% { width: 10px; height: 10px; opacity: 0.8; }
+                100% { width: 45px; height: 45px; opacity: 0; }
             }
-            .hotspot.is-active .hotspot-core { transform: scale(1.4); box-shadow: 0 0 30px rgba(150,200,255,1), 0 0 70px rgba(60,120,255,0.5); }
+            .hotspot.is-active .hotspot-core { transform: scale(1.4); box-shadow: 0 0 25px rgba(150,200,255,1), 0 0 55px rgba(60,120,255,0.5); }
         }
     </style>
 </head>
