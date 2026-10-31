@@ -618,8 +618,8 @@
             const pCount = isMobile ? 200 : 280;
             const pSizeMax = isMobile ? 0.75 : 1.8;
             const pSizeBase = isMobile ? 0.35 : 0.8;
-            const pBrightMax = isMobile ? 0.35 : 0.25;
-            const pBrightBase = isMobile ? 0.65 : 0.5;
+            const pBrightMax = isMobile ? 0.4 : 0.3;
+            const pBrightBase = isMobile ? 0.8 : 0.65;
 
             // 生成吸积盘粒子（扩散状）
             const diskParticles = [];
@@ -781,8 +781,8 @@
 
                     // 多普勒效应
                     const doppler = (Math.cos(p.angle) + 1) * 0.5;
-                    const doppBase = isMobile ? 0.35 : 0.4;
-                    const doppRange = isMobile ? 0.45 : 0.5;
+                    const doppBase = isMobile ? 0.4 : 0.45;
+                    const doppRange = isMobile ? 0.5 : 0.55;
                     const bright = p.brightness * (doppBase + doppler * doppRange) * fadeBoost;
 
                     // 温度梯度：内侧白热，外侧偏蓝
@@ -800,8 +800,8 @@
                     }
 
                     // 粒子柔光层
-                    const glowMul = isMobile ? 3 : 3.5;
-                    const glowAlpha = isMobile ? 0.3 : 0.35;
+                    const glowMul = isMobile ? 3.5 : 4;
+                    const glowAlpha = isMobile ? 0.4 : 0.45;
                     const glowGrad = ctx.createRadialGradient(px, py, 0, px, py, p.size * glowMul);
                     glowGrad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${bright * glowAlpha})`);
                     glowGrad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
@@ -814,6 +814,34 @@
                     ctx.beginPath();
                     ctx.arc(px, py, p.size, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${bright})`;
+                    ctx.fill();
+
+                    // 粒子辐射散光：沿径向向外拖尾，渐淡消失
+                    const radDir = p.r > 0 ? 1 : 1; // 径向方向（始终向外）
+                    const radTailLen = p.size * (isMobile ? 6 : 10) * (0.5 + fadeRatio * 0.5);
+                    const radTx = px - Math.cos(p.angle) * radTailLen;
+                    const radTy = py - Math.sin(p.angle) * radTailLen * 0.35;
+                    const radGrad = ctx.createLinearGradient(radTx, radTy, px, py);
+                    radGrad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},0)`);
+                    radGrad.addColorStop(0.5, `rgba(${r|0},${g|0},${b|0},${bright * 0.08})`);
+                    radGrad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},${bright * 0.2})`);
+                    ctx.strokeStyle = radGrad;
+                    ctx.lineWidth = p.size * 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(radTx, radTy);
+                    ctx.lineTo(px, py);
+                    ctx.stroke();
+
+                    // 辐射散光光晕（沿径向扩散）
+                    const radGlowR = p.size * (isMobile ? 2.5 : 3.5);
+                    const radGlowCx = px + Math.cos(p.angle) * p.size * 0.5;
+                    const radGlowCy = py + Math.sin(p.angle) * p.size * 0.5 * 0.35;
+                    const radGlowGrad = ctx.createRadialGradient(radGlowCx, radGlowCy, 0, radGlowCx, radGlowCy, radGlowR);
+                    radGlowGrad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${bright * 0.15})`);
+                    radGlowGrad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
+                    ctx.fillStyle = radGlowGrad;
+                    ctx.beginPath();
+                    ctx.arc(radGlowCx, radGlowCy, radGlowR, 0, Math.PI * 2);
                     ctx.fill();
                 }
                 ctx.restore();
