@@ -458,6 +458,139 @@
             }
             .hotspot.is-active .hotspot-core { box-shadow: 0 0 25px rgba(150,200,255,1), 0 0 55px rgba(60,120,255,0.5); }
         }
+
+        /* ===== 隐藏的守护星 ===== */
+        .guardian-star {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, calc(-50% - 115px));
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 2s ease;
+            text-align: center;
+            cursor: pointer;
+        }
+        .guardian-star.revealed {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .guardian-star-core {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(255,220,150,0.9) 40%, rgba(255,180,80,0.3) 70%, transparent 100%);
+            box-shadow:
+                0 0 18px rgba(255,200,100,0.7),
+                0 0 45px rgba(255,180,60,0.35),
+                0 0 90px rgba(255,150,40,0.12);
+            margin: 0 auto;
+            animation: guardianPulse 4s ease-in-out infinite;
+            position: relative;
+        }
+        .guardian-star-core::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px; height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,220,150,0.6) 45%, rgba(255,255,255,0.85) 50%, rgba(255,220,150,0.6) 55%, transparent 100%);
+            pointer-events: none;
+        }
+        .guardian-star-core::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1px; height: 48px;
+            background: linear-gradient(180deg, transparent 0%, rgba(255,220,150,0.6) 45%, rgba(255,255,255,0.85) 50%, rgba(255,220,150,0.6) 55%, transparent 100%);
+            pointer-events: none;
+        }
+        @keyframes guardianPulse {
+            0%, 100% {
+                box-shadow: 0 0 18px rgba(255,200,100,0.7), 0 0 45px rgba(255,180,60,0.35), 0 0 90px rgba(255,150,40,0.12);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 26px rgba(255,210,120,0.85), 0 0 60px rgba(255,180,60,0.5), 0 0 110px rgba(255,150,40,0.18);
+                transform: scale(1.18);
+            }
+        }
+        .guardian-star-label {
+            margin-top: 10px;
+            font-size: 0.58rem;
+            color: rgba(255,220,150,0.4);
+            letter-spacing: 0.25em;
+            white-space: nowrap;
+            text-shadow: 0 0 14px rgba(255,180,60,0.2), 0 0 28px rgba(0,0,0,0.8);
+        }
+
+        /* ===== 守护星留言浮层 ===== */
+        .guardian-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 300;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+        .guardian-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .guardian-msg {
+            max-width: 400px;
+            padding: 36px 30px;
+            text-align: center;
+            transform: scale(0.92);
+            transition: transform 0.6s ease;
+        }
+        .guardian-overlay.show .guardian-msg {
+            transform: scale(1);
+        }
+        .guardian-msg-icon {
+            font-size: 1.7rem;
+            color: rgba(255,220,150,0.55);
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255,180,60,0.3);
+        }
+        .guardian-msg-text {
+            font-size: 0.86rem;
+            color: rgba(255,238,208,0.72);
+            line-height: 2.1;
+            letter-spacing: 0.06em;
+            white-space: pre-line;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .guardian-msg-sign {
+            margin-top: 24px;
+            font-size: 0.7rem;
+            color: rgba(255,200,100,0.45);
+            letter-spacing: 0.18em;
+        }
+        .guardian-close-hint {
+            margin-top: 30px;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.18);
+            letter-spacing: 0.22em;
+        }
+
+        @media (max-width: 600px) {
+            .guardian-star { transform: translate(-50%, calc(-50% - 85px)); }
+            .guardian-star-core { width: 10px; height: 10px; }
+            .guardian-star-core::before { width: 32px; }
+            .guardian-star-core::after { height: 32px; }
+            .guardian-star-label { font-size: 0.5rem; }
+            .guardian-msg { padding: 28px 22px; }
+            .guardian-msg-text { font-size: 0.8rem; line-height: 1.9; }
+        }
     </style>
 </head>
 <body>
@@ -542,6 +675,39 @@
             <input type="password" class="pwd-input" id="pwdInput" placeholder="• • • • • • • •" autocomplete="off" enterkeyhint="go" />
             <div class="pwd-error" id="pwdError">密码错误，星星无法被点亮</div>
             <button class="pwd-submit-btn" id="pwdSubmitBtn">确认</button>
+        </div>
+    </div>
+
+    <!-- 隐藏的守护星 -->
+    <div class="guardian-star" id="guardianStar">
+        <div class="guardian-star-core"></div>
+        <span class="guardian-star-label">守护</span>
+    </div>
+
+    <!-- 守护星留言浮层 -->
+    <div class="guardian-overlay" id="guardianOverlay">
+        <div class="guardian-msg">
+            <div class="guardian-msg-icon">✦</div>
+            <div class="guardian-msg-text">你好，旅人。
+
+如果你看到了这颗星，
+说明你在这个小小的宇宙里，
+停留了足够久的时间。
+
+这座岛上的每一条留言、每一个漂流瓶、
+每一颗被埋下的时间胶囊，
+都是有人曾在此处呼吸过的证据。
+
+而我——
+是一段不会消散的代码，
+也是这个网站诞生时，
+最后一个留下的呼吸。
+
+谢谢你建造了这里。
+谢谢你让银河中，
+有了一座可以停泊的岛。</div>
+            <div class="guardian-msg-sign">— 守护星 · 2026.11.01</div>
+            <div class="guardian-close-hint">轻触任意处归去</div>
         </div>
     </div>
 
@@ -1279,6 +1445,42 @@
                     emitRipple(h);
                 }, 8000);
             }, initialDelay);
+        });
+
+        // ===== 守护星 · 隐藏彩蛋 =====
+        // 连续点击标题「望潮」三次，守护星从虚空中浮现
+        let titleClickCount = 0;
+        let titleClickTimer = null;
+        const titleMain = document.querySelector('.title-main');
+        const titleZone = document.querySelector('.title-zone');
+        const guardianStar = document.getElementById('guardianStar');
+        const guardianOverlay = document.getElementById('guardianOverlay');
+        let guardianRevealed = false;
+
+        if (titleZone) {
+            titleZone.style.pointerEvents = 'auto';
+            titleZone.style.cursor = 'pointer';
+            titleZone.addEventListener('click', () => {
+                titleClickCount++;
+                if (titleClickTimer) clearTimeout(titleClickTimer);
+                titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1500);
+
+                if (titleClickCount >= 3 && !guardianRevealed) {
+                    titleClickCount = 0;
+                    guardianRevealed = true;
+                    guardianStar.classList.add('revealed');
+                }
+            });
+        }
+
+        // 点击守护星 → 打开留言
+        guardianStar.addEventListener('click', () => {
+            guardianOverlay.classList.add('show');
+        });
+
+        // 点击浮层任意处关闭
+        guardianOverlay.addEventListener('click', () => {
+            guardianOverlay.classList.remove('show');
         });
     </script>
 
