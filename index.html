@@ -298,6 +298,117 @@
         }
         @keyframes fadeIn { to { opacity: 1; } }
 
+        /* ===== 星星未点亮提示 Toast（透明背景） ===== */
+        .star-toast {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 100;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            text-align: center;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .star-toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .star-toast-icon {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+            color: rgba(200, 220, 255, 0.7);
+            text-shadow: 0 0 20px rgba(100, 180, 255, 0.3);
+        }
+        .star-toast-text {
+            font-size: 0.82rem;
+            color: rgba(200, 220, 255, 0.75);
+            letter-spacing: 0.1em;
+            line-height: 1.6;
+            white-space: nowrap;
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ===== 密码输入弹窗 ===== */
+        .pwd-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .pwd-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .pwd-box {
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.4s ease;
+        }
+        .pwd-overlay.show .pwd-box {
+            transform: scale(1);
+        }
+        .pwd-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: rgba(150, 200, 255, 0.6);
+            text-shadow: 0 0 30px rgba(100, 180, 255, 0.4);
+        }
+        .pwd-hint {
+            font-size: 0.72rem;
+            color: rgba(180, 200, 230, 0.5);
+            letter-spacing: 0.15em;
+            margin-bottom: 20px;
+        }
+        .pwd-input {
+            width: 220px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(120, 180, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(220, 235, 255, 0.9);
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pwd-input::placeholder {
+            color: rgba(150, 180, 220, 0.3);
+            letter-spacing: 0.05em;
+        }
+        .pwd-input:focus {
+            border-color: rgba(120, 180, 255, 0.5);
+            box-shadow: 0 0 20px rgba(80, 140, 220, 0.15);
+        }
+        .pwd-error {
+            font-size: 0.7rem;
+            color: rgba(255, 120, 120, 0.6);
+            margin-top: 12px;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .pwd-error.show {
+            opacity: 1;
+        }
+
         @media (max-width: 600px) {
             .title-main { font-size: 1.4rem; letter-spacing: 0.3em; }
             .title-sub { font-size: 0.45rem; letter-spacing: 0.4em; }
@@ -348,7 +459,7 @@
             <span class="hotspot-label">留言板</span>
             <span class="hotspot-sub">MESSAGE</span>
         </a>
-        <a href="yu.html" class="hotspot" data-orbit-angle="1.26" data-orbit-radius="1.7" data-orbit-tilt="0.32">
+        <a href="javascript:void(0)" class="hotspot" data-orbit-angle="1.26" data-orbit-radius="1.7" data-orbit-tilt="0.32" data-locked="true">
             <div class="hotspot-core">
                 <div class="hotspot-ring"></div>
             </div>
@@ -385,6 +496,22 @@
     </div>
 
     <div class="hint fade-in" style="--d: 2s;">点击光点探索 · 漂浮在银河中</div>
+
+    <!-- 星星未点亮提示 -->
+    <div class="star-toast" id="starToast">
+        <div class="star-toast-icon">✦</div>
+        <div class="star-toast-text">这颗星星还不能被点亮<br>去试试其它的星星吧</div>
+    </div>
+
+    <!-- 密码输入弹窗 -->
+    <div class="pwd-overlay" id="pwdOverlay">
+        <div class="pwd-box">
+            <div class="pwd-icon">✧</div>
+            <div class="pwd-hint">输入密码以点亮这颗星星</div>
+            <input type="password" class="pwd-input" id="pwdInput" placeholder="• • • • • • • •" autocomplete="off" />
+            <div class="pwd-error" id="pwdError">密码错误，星星无法被点亮</div>
+        </div>
+    </div>
 
     <script>
         // ===== 背景图片预加载 =====
@@ -947,6 +1074,81 @@
                 e.currentTarget.classList.remove('is-active');
             });
         });
+
+        // ===== 屿语板块锁定 + 暗门入口 =====
+        const starToast = document.getElementById('starToast');
+        let toastTimer = null;
+        let lockedClickCount = 0;
+        let lockedClickTimer = null;
+
+        function showStarToast() {
+            if (toastTimer) clearTimeout(toastTimer);
+            starToast.classList.add('show');
+            toastTimer = setTimeout(() => starToast.classList.remove('show'), 1500);
+        }
+
+        // 密码弹窗
+        const pwdOverlay = document.getElementById('pwdOverlay');
+        const pwdInput = document.getElementById('pwdInput');
+        const pwdError = document.getElementById('pwdError');
+        const PASSWORD = 'hmj1314520';
+
+        function showPwdOverlay() {
+            pwdOverlay.classList.add('show');
+            pwdError.classList.remove('show');
+            pwdInput.value = '';
+            setTimeout(() => pwdInput.focus(), 300);
+        }
+
+        function hidePwdOverlay() {
+            pwdOverlay.classList.remove('show');
+            pwdError.classList.remove('show');
+            pwdInput.value = '';
+        }
+
+        // 输入密码后回车验证
+        pwdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (pwdInput.value === PASSWORD) {
+                    hidePwdOverlay();
+                    window.location.href = 'yu.html';
+                } else {
+                    pwdError.classList.add('show');
+                    pwdInput.value = '';
+                    pwdInput.focus();
+                }
+            }
+        });
+
+        // 点击遮罩空白处关闭密码弹窗
+        pwdOverlay.addEventListener('click', (e) => {
+            if (e.target === pwdOverlay) {
+                hidePwdOverlay();
+            }
+        });
+
+        document.querySelectorAll('.hotspot[data-locked="true"]').forEach(h => {
+            h.addEventListener('click', (e) => {
+                e.preventDefault();
+                showStarToast();
+
+                // 暗门：快速连点 5 次弹出密码界面
+                lockedClickCount++;
+                if (lockedClickTimer) clearTimeout(lockedClickTimer);
+                lockedClickTimer = setTimeout(() => { lockedClickCount = 0; }, 1200);
+
+                if (lockedClickCount >= 5) {
+                    lockedClickCount = 0;
+                    showPwdOverlay();
+                }
+            });
+        });
+
+        // 暗门：URL hash #whispers 直接进入
+        if (window.location.hash === '#whispers') {
+            window.location.href = 'yu.html';
+        }
 
         // 返回页面时重置所有光点
         window.addEventListener('pageshow', () => {
