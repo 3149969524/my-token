@@ -260,17 +260,19 @@
         .capsule-content::-webkit-scrollbar-thumb { background: rgba(100,180,255,0.15); }
         .capsule-close {
             position: fixed;
-            top: 20px;
-            right: 24px;
-            font-size: 1.3rem;
-            color: rgba(255,255,255,0.3);
+            top: 18px; left: 18px;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.8rem;
+            color: rgba(180, 210, 255, 0.5);
             cursor: pointer;
             transition: color 0.3s;
             user-select: none;
             -webkit-user-select: none;
+            text-decoration: none; letter-spacing: 0.08em;
             z-index: 10001;
         }
-        .capsule-close:hover { color: rgba(100,180,255,0.7); }
+        .capsule-close:hover { color: rgba(180, 210, 255, 0.9); }
+        .capsule-close-arrow { font-size: 1.2rem; }
         .capsule-fadein {
             animation: capsuleFade 1.2s ease;
         }
@@ -760,7 +762,7 @@
 <body>
 
     <!-- ===== 返回按钮 ===== -->
-    <a href="index.html" class="back-btn">
+    <a href="index.html" class="back-btn" id="backBtn">
         <span class="back-arrow">←</span>
         <span>回到星海</span>
     </a>
@@ -791,7 +793,7 @@
     </div>
 
     <div class="capsule-modal hide" id="capsuleModal" style="display:none;">
-        <div class="capsule-close" id="capsuleClose">✕</div>
+        <div class="capsule-close" id="capsuleClose"><span class="capsule-close-arrow">←</span><span>回到星海</span></div>
         <div class="capsule-back" id="capsuleBack" style="display:none;">‹ 返回</div>
         <div class="capsule-icon-big">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1742,6 +1744,11 @@
         });
 
         function closeCapsule() {
+            // 如果是从首页 #capsule 进入的，关闭时直接回首页
+            if (location.hash === '#capsule') {
+                window.location.href = 'index.html';
+                return;
+            }
             capsuleModal.classList.add('hide');
             setTimeout(function() {
                 capsuleModal.style.display = 'none';
