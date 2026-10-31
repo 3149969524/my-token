@@ -613,9 +613,16 @@
             const ehR = Math.min(canvas.width, canvas.height) * 0.055; // 放大事件视界半径
             const diskR = ehR * 4; // 吸积盘外半径
 
+            // 移动端适配：根据屏幕宽度动态调整粒子参数
+            const isMobile = canvas.width < 600;
+            const pCount = isMobile ? 160 : 280;
+            const pSizeMax = isMobile ? 1.2 : 1.8;
+            const pSizeBase = isMobile ? 0.5 : 0.8;
+            const pBrightMax = isMobile ? 0.15 : 0.25;
+            const pBrightBase = isMobile ? 0.3 : 0.5;
+
             // 生成吸积盘粒子（扩散状）
             const diskParticles = [];
-            const pCount = 280;
             for (let i = 0; i < pCount; i++) {
                 const r = ehR * 1.25 + Math.random() * (diskR - ehR * 1.25);
                 const ang = Math.random() * Math.PI * 2;
@@ -627,13 +634,13 @@
                     driftV: Math.random() * 0.03 + 0.005, // 向外漂移（降速匹配）
                     // 垂直偏移（不压扁在同一个平面）
                     yOffset: (Math.random() - 0.5) * ehR * 0.8,
-                    size: Math.random() * 1.8 + 0.8,
-                    brightness: Math.random() * 0.25 + 0.5,
+                    size: Math.random() * pSizeMax + pSizeBase,
+                    brightness: Math.random() * pBrightMax + pBrightBase,
                     colorType: Math.random(),
                     maxR: diskR * (0.8 + Math.random() * 0.4) // 扩散到不同距离后回收
                 });
             }
-            blackHole = { cx, cy, ehR, diskR, diskParticles };
+            blackHole = { cx, cy, ehR, diskR, diskParticles, isMobile };
         }
 
         function createShootingStar() {
@@ -735,11 +742,17 @@
             if (blackHole) {
                 const bh = blackHole;
                 const cx = bh.cx, cy = bh.cy, ehR = bh.ehR, diskR = bh.diskR;
+                const isMobile = bh.isMobile;
 
                 // 1. 远场弥散光晕（吸积盘整体辉光）
                 const farGlow = ctx.createRadialGradient(cx, cy, ehR * 1.5, cx, cy, diskR * 1.5);
-                farGlow.addColorStop(0, 'rgba(120,90,50,0.06)');
-                farGlow.addColorStop(0.5, 'rgba(60,80,120,0.02)');
+                if (isMobile) {
+                    farGlow.addColorStop(0, 'rgba(100,70,40,0.03)');
+                    farGlow.addColorStop(0.5, 'rgba(50,60,90,0.01)');
+                } else {
+                    farGlow.addColorStop(0, 'rgba(120,90,50,0.06)');
+                    farGlow.addColorStop(0.5, 'rgba(60,80,120,0.02)');
+                }
                 farGlow.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = farGlow;
                 ctx.beginPath();
@@ -768,7 +781,9 @@
 
                     // 多普勒效应
                     const doppler = (Math.cos(p.angle) + 1) * 0.5;
-                    const bright = p.brightness * (0.3 + doppler * 0.4) * fadeBoost;
+                    const doppBase = isMobile ? 0.2 : 0.3;
+                    const doppRange = isMobile ? 0.25 : 0.4;
+                    const bright = p.brightness * (doppBase + doppler * doppRange) * fadeBoost;
 
                     // 温度梯度：内侧白热，外侧偏蓝
                     const tRatio = fadeRatio;
@@ -785,12 +800,14 @@
                     }
 
                     // 粒子柔光层
-                    const glowGrad = ctx.createRadialGradient(px, py, 0, px, py, p.size * 3.5);
-                    glowGrad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${bright * 0.35})`);
+                    const glowMul = isMobile ? 2.5 : 3.5;
+                    const glowAlpha = isMobile ? 0.2 : 0.35;
+                    const glowGrad = ctx.createRadialGradient(px, py, 0, px, py, p.size * glowMul);
+                    glowGrad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${bright * glowAlpha})`);
                     glowGrad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
                     ctx.fillStyle = glowGrad;
                     ctx.beginPath();
-                    ctx.arc(px, py, p.size * 3.5, 0, Math.PI * 2);
+                    ctx.arc(px, py, p.size * glowMul, 0, Math.PI * 2);
                     ctx.fill();
 
                     // 粒子主体
