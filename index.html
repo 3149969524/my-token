@@ -18,7 +18,17 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ===== 真实银河照片背景层1（Kai Pilger - 5150x3433, 2690万浏览） ===== */
+        /* ===== 加载占位背景（图片加载前显示纯黑+暗紫渐变） ===== */
+        .loading-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at center, #0a0418 0%, #050210 50%, #000 100%);
+            transition: opacity 1.5s ease;
+        }
+        .loading-bg.hide { opacity: 0; pointer-events: none; }
+
+        /* ===== 真实银河照片背景层1 ===== */
         .galaxy-bg {
             position: fixed;
             inset: 0;
@@ -26,16 +36,17 @@
             background-image: url('galaxy_bg.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 1;
-            transition: opacity 6s ease;
+            opacity: 0;
+            transition: opacity 2s ease;
         }
+        .galaxy-bg.loaded { opacity: 1; transition: opacity 2.5s ease; }
 
-        /* ===== 真实银河照片背景层2（Adi K - 3152x4541, 5000万浏览） ===== */
+        /* ===== 真实银河照片背景层2 ===== */
         .galaxy_bg2 {
             position: fixed;
             inset: 0;
             z-index: 0;
-            background-image: url('galaxy_bg2.png');
+            background-image: url('galaxy_bg2.jpg');
             background-size: cover;
             background-position: center;
             opacity: 0;
@@ -294,9 +305,11 @@
 </head>
 <body>
 
+    <!-- 加载占位背景（图片加载前显示） -->
+    <div class="loading-bg" id="loadingBg"></div>
     <!-- 真实银河系照片背景（两张轮播） -->
-    <div class="galaxy-bg fade-in"></div>
-    <div class="galaxy_bg2"></div>
+    <div class="galaxy-bg" id="galaxyBg"></div>
+    <div class="galaxy_bg2" id="galaxyBg2"></div>
     <div class="vignette"></div>
 
     <!-- Canvas 星空叠加 -->
@@ -345,14 +358,40 @@
     <div class="hint fade-in" style="--d: 2s;">点击光点探索 · 漂浮在银河中</div>
 
     <script>
+        // ===== 背景图片预加载 =====
+        const bg1 = document.getElementById('galaxyBg');
+        const bg2 = document.getElementById('galaxyBg2');
+        const loadingBg = document.getElementById('loadingBg');
+        let imagesLoaded = 0;
+        const totalImages = 2;
+
+        function onImageLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded >= totalImages) {
+                // 两张图都加载完，淡入背景并隐藏占位
+                bg1.classList.add('loaded');
+                setTimeout(() => loadingBg.classList.add('hide'), 100);
+            }
+        }
+
+        const img1 = new Image();
+        img1.onload = onImageLoaded;
+        img1.onerror = onImageLoaded; // 出错也继续
+        img1.src = 'galaxy_bg.jpg';
+
+        const img2 = new Image();
+        img2.onload = onImageLoaded;
+        img2.onerror = onImageLoaded;
+        img2.src = 'galaxy_bg2.jpg';
+
         // ===== 背景轮播 =====
-        const bg1 = document.querySelector('.galaxy-bg');
-        const bg2 = document.querySelector('.galaxy_bg2');
         let bgToggle = false;
         function rotateBg() {
             bgToggle = !bgToggle;
-            bg1.style.opacity = bgToggle ? '0' : '1';
-            bg2.style.opacity = bgToggle ? '0.85' : '0';
+            if (bg1.classList.contains('loaded')) {
+                bg1.style.opacity = bgToggle ? '0' : '1';
+                bg2.style.opacity = bgToggle ? '0.85' : '0';
+            }
         }
         setInterval(rotateBg, 15000);
 
