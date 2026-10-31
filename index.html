@@ -410,6 +410,28 @@
         .pwd-error.show {
             opacity: 1;
         }
+        .pwd-submit-btn {
+            margin-top: 16px;
+            padding: 10px 48px;
+            background: rgba(120, 180, 255, 0.12);
+            border: 1px solid rgba(120, 180, 255, 0.3);
+            border-radius: 50px;
+            color: rgba(220, 235, 255, 0.85);
+            font-size: 0.92rem;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pwd-submit-btn:hover {
+            background: rgba(120, 180, 255, 0.2);
+            border-color: rgba(120, 180, 255, 0.5);
+            box-shadow: 0 0 20px rgba(80, 140, 220, 0.2);
+            color: rgba(255, 255, 255, 1);
+        }
+        .pwd-submit-btn:active {
+            transform: scale(0.95);
+        }
 
         @media (max-width: 600px) {
             .title-main { font-size: 1.4rem; letter-spacing: 0.3em; }
@@ -510,8 +532,9 @@
         <div class="pwd-box">
             <div class="pwd-icon">✧</div>
             <div class="pwd-hint">输入密码以点亮这颗星星</div>
-            <input type="password" class="pwd-input" id="pwdInput" placeholder="• • • • • • • •" autocomplete="off" />
+            <input type="password" class="pwd-input" id="pwdInput" placeholder="• • • • • • • •" autocomplete="off" enterkeyhint="go" />
             <div class="pwd-error" id="pwdError">密码错误，星星无法被点亮</div>
+            <button class="pwd-submit-btn" id="pwdSubmitBtn">确认</button>
         </div>
     </div>
 
@@ -1144,6 +1167,7 @@
         const pwdOverlay = document.getElementById('pwdOverlay');
         const pwdInput = document.getElementById('pwdInput');
         const pwdError = document.getElementById('pwdError');
+        const pwdSubmitBtn = document.getElementById('pwdSubmitBtn');
         const PASSWORD = 'hmj1314520';
 
         function showPwdOverlay() {
@@ -1159,19 +1183,30 @@
             pwdInput.value = '';
         }
 
+        // 密码验证函数
+        function verifyPassword() {
+            if (pwdInput.value === PASSWORD) {
+                hidePwdOverlay();
+                window.location.href = 'yu.html';
+            } else {
+                pwdError.classList.add('show');
+                pwdInput.value = '';
+                pwdInput.focus();
+            }
+        }
+
         // 输入密码后回车验证
         pwdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' || e.key === 'Go' || e.keyCode === 13) {
                 e.preventDefault();
-                if (pwdInput.value === PASSWORD) {
-                    hidePwdOverlay();
-                    window.location.href = 'yu.html';
-                } else {
-                    pwdError.classList.add('show');
-                    pwdInput.value = '';
-                    pwdInput.focus();
-                }
+                verifyPassword();
             }
+        });
+
+        // 点击确认按钮验证
+        pwdSubmitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            verifyPassword();
         });
 
         // 点击遮罩空白处关闭密码弹窗
