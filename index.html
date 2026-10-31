@@ -640,7 +640,23 @@
                     maxR: diskR * (0.8 + Math.random() * 0.4) // 扩散到不同距离后回收
                 });
             }
-            blackHole = { cx, cy, ehR, diskR, diskParticles, isMobile };
+            blackHole = { cx, cy, ehR, diskR, diskParticles, isMobile, radiationParticles: [] };
+        }
+
+        // ===== 辐射散光粒子：从黑洞中心向四周辐射，渐淡消失 =====
+        function spawnRadiationParticle(bh) {
+            const ang = Math.random() * Math.PI * 2;
+            const speed = (Math.random() * 0.4 + 0.3) * bh.ehR;
+            return {
+                x: 0, y: 0,
+                vx: Math.cos(ang) * speed,
+                vy: Math.sin(ang) * speed,
+                life: 1.0,
+                decay: 0.004 + Math.random() * 0.006,
+                size: (Math.random() * 0.6 + 0.4) * (bh.isMobile ? 1 : 2),
+                colorType: Math.random(),
+                angle: ang
+            };
         }
 
         function createShootingStar() {
@@ -814,6 +830,70 @@
                     ctx.beginPath();
                     ctx.arc(px, py, p.size, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${bright})`;
+                    ctx.fill();
+                }
+
+                // 2.5 辐射散光粒子：向四周飞出，渐淡消失
+                // 每帧生成新粒子
+                const radSpawn = isMobile ? 2 : 3;
+                for (let i = 0; i < radSpawn; i++) {
+                    if (bh.radiationParticles.length < (isMobile ? 80 : 150)) {
+                        bh.radiationParticles.push(spawnRadiationParticle(bh));
+                    }
+                }
+
+                for (let i = bh.radiationParticles.length - 1; i >= 0; i--) {
+                    const rp = bh.radiationParticles[i];
+                    rp.x += rp.vx;
+                    rp.y += rp.vy;
+                    rp.life -= rp.decay;
+                    // 稍微减速
+                    rp.vx *= 0.995;
+                    rp.vy *= 0.995;
+
+                    if (rp.life <= 0) {
+                        bh.radiationParticles.splice(i, 1);
+                        continue;
+                    }
+
+                    // 辐射粒子颜色：白热到暖色
+                    let rr, gg, bb;
+                    if (rp.colorType > 0.5) {
+                        rr = 255; gg = 230 + rp.life * 25; bb = 180 + rp.life * 75;
+                    } else if (rp.colorType > 0.2) {
+                        rr = 255; gg = 200 + rp.life * 55; bb = 130 + rp.life * 125;
+                    } else {
+                        rr = 180 + rp.life * 75; gg = 210 + rp.life * 45; bb = 255;
+                    }
+
+                    // 辐射粒子拖尾线段（从中心方向拖尾）
+                    const tailLen = rp.life * (isMobile ? 3 : 5);
+                    const tx = rp.x - Math.cos(rp.angle) * tailLen;
+                    const ty = rp.y - Math.sin(rp.angle) * tailLen;
+                    const tailGrad = ctx.createLinearGradient(tx, ty, rp.x, rp.y);
+                    tailGrad.addColorStop(0, `rgba(${rr|0},${gg|0},${bb|0},0)`);
+                    tailGrad.addColorStop(1, `rgba(${rr|0},${gg|0},${bb|0},${rp.life * 0.25})`);
+                    ctx.strokeStyle = tailGrad;
+                    ctx.lineWidth = rp.size * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(tx, ty);
+                    ctx.lineTo(rp.x, rp.y);
+                    ctx.stroke();
+
+                    // 辐射粒子光晕
+                    const rGlow = rp.size * (isMobile ? 3 : 4);
+                    const rGlowGrad = ctx.createRadialGradient(rp.x, rp.y, 0, rp.x, rp.y, rGlow);
+                    rGlowGrad.addColorStop(0, `rgba(${rr|0},${gg|0},${bb|0},${rp.life * 0.3})`);
+                    rGlowGrad.addColorStop(1, `rgba(${rr|0},${gg|0},${bb|0},0)`);
+                    ctx.fillStyle = rGlowGrad;
+                    ctx.beginPath();
+                    ctx.arc(rp.x, rp.y, rGlow, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 辐射粒子主体
+                    ctx.beginPath();
+                    ctx.arc(rp.x, rp.y, rp.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${rr|0},${gg|0},${bb|0},${rp.life})`;
                     ctx.fill();
                 }
                 ctx.restore();
