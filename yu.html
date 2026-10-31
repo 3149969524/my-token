@@ -744,9 +744,26 @@
         .capsule-admin-prompt input:focus {
             border-color: rgba(240,235,224,0.35);
         }
+
+        /* ===== 返回按钮 ===== */
+        .back-btn {
+            position: fixed; top: 18px; left: 18px; z-index: 200;
+            display: flex; align-items: center; gap: 6px;
+            color: rgba(240, 235, 224, 0.5); font-size: 0.8rem;
+            text-decoration: none; letter-spacing: 0.08em;
+            transition: color 0.3s ease;
+        }
+        .back-btn:hover { color: rgba(240, 235, 224, 0.9); }
+        .back-arrow { font-size: 1.2rem; }
     </style>
 </head>
 <body>
+
+    <!-- ===== 返回按钮 ===== -->
+    <a href="index.html" class="back-btn">
+        <span class="back-arrow">←</span>
+        <span>回到星海</span>
+    </a>
 
     <!-- ===== 里屋暗门 ===== -->
     <div class="inner-door hide" id="innerDoor" style="display:none;">
