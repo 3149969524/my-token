@@ -860,7 +860,7 @@
                 var data = await fetchBottles();
                 var bottles = data.bottles;
 
-                setTimeout(function() {
+                setTimeout(async function() {
                     salvageAnim.style.display = 'none';
 
                     if (!bottles || bottles.length === 0) {
