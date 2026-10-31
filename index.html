@@ -155,80 +155,6 @@
             100% { width: 100px; height: 100px; opacity: 0; }
         }
 
-        /* ===== 链接星星 ===== */
-        .star-link {
-            position: fixed;
-            left: 50%;
-            top: 18%;
-            transform: translateX(-50%);
-            z-index: 5;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-        }
-        .star-star {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(100,180,255,0.8) 40%, rgba(60,120,255,0.3) 70%, transparent 100%);
-            box-shadow:
-                0 0 20px rgba(100,180,255,0.8),
-                0 0 50px rgba(60,120,255,0.4),
-                0 0 100px rgba(40,80,200,0.2);
-            animation: starPulse 5s ease-in-out infinite;
-            position: relative;
-        }
-        /* 十字光芒 - 水平 */
-        .star-star::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70px; height: 1px;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 45%, #fff 50%, rgba(255,255,255,0.7) 55%, transparent 100%);
-            pointer-events: none;
-        }
-        /* 十字光芒 - 垂直 */
-        .star-star::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 1px; height: 70px;
-            background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.7) 45%, #fff 50%, rgba(255,255,255,0.7) 55%, transparent 100%);
-            pointer-events: none;
-        }
-        @keyframes starPulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(100,180,255,0.8), 0 0 50px rgba(60,120,255,0.4), 0 0 100px rgba(40,80,200,0.2);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(100,180,255,0.9), 0 0 65px rgba(60,120,255,0.5), 0 0 120px rgba(40,80,200,0.25);
-                transform: scale(1.15);
-            }
-        }
-        .star-label {
-            margin-top: 18px;
-            white-space: nowrap;
-            font-size: 0.82rem;
-            color: rgba(255,255,255,0.7);
-            letter-spacing: 0.2em;
-            text-shadow: 0 0 14px rgba(100,180,255,0.5), 0 0 28px rgba(0,0,0,0.8);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .star-link:hover .star-star {
-            animation: none;
-            background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(150,200,255,1) 30%, rgba(80,140,255,0.5) 70%, transparent 100%);
-            box-shadow: 0 0 50px rgba(150,200,255,1), 0 0 120px rgba(60,120,255,0.6);
-            transform: scale(1.6);
-        }
-        .star-link:hover .star-label { opacity: 1; }
-
         /* ===== 扩散光圈波纹 ===== */
         .hotspot-ripple {
             position: absolute;
@@ -378,10 +304,6 @@
             .hotspot-core { width: 10px; height: 10px; box-shadow: 0 0 10px rgba(100,180,255,0.7), 0 0 22px rgba(60,120,255,0.3), 0 0 45px rgba(40,80,200,0.15); }
             .hotspot-core::before { width: 35px; }
             .hotspot-core::after { height: 35px; }
-            .star-star { width: 10px; height: 10px; box-shadow: 0 0 10px rgba(100,180,255,0.7), 0 0 22px rgba(60,120,255,0.3), 0 0 45px rgba(40,80,200,0.15); }
-            .star-star::before { width: 35px; }
-            .star-star::after { height: 35px; }
-            .star-label { font-size: 0.68rem; letter-spacing: 0.12em; margin-top: 8px; }
             .hotspot-ring { width: 28px; height: 28px; }
             .hotspot-label { font-size: 0.68rem; letter-spacing: 0.12em; margin-top: 8px; }
             .hotspot-sub { font-size: 0.48rem; }
@@ -447,13 +369,14 @@
             <span class="hotspot-label">关于</span>
             <span class="hotspot-sub">ABOUT</span>
         </a>
+        <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="hotspot" style="left: 50%; top: 18%;">
+            <div class="hotspot-core">
+                <div class="hotspot-ring"></div>
+            </div>
+            <span class="hotspot-label">情深缘浅</span>
+            <span class="hotspot-sub">SEVRENVALE</span>
+        </a>
     </div>
-
-    <!-- 链接星星 -->
-    <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="star-link fade-in" style="--d: 1.2s;">
-        <div class="star-star"></div>
-        <span class="star-label">情深缘浅</span>
-    </a>
 
     <!-- 标题 -->
     <div class="title-zone fade-in" style="--d: 0.5s;">
