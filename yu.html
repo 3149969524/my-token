@@ -484,17 +484,18 @@
         .capsule-detail.show { display: flex; }
         .capsule-back {
             position: fixed;
-            top: 20px;
-            left: 24px;
+            top: 18px;
+            right: 24px;
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.3);
-            cursor: pointer;
+            color: rgba(180, 210, 255, 0.5);
             transition: color 0.3s;
             user-select: none;
             -webkit-user-select: none;
+            cursor: pointer;
             z-index: 10001;
+            display: none;
         }
-        .capsule-back:hover { color: rgba(100,180,255,0.7); }
+        .capsule-back:hover { color: rgba(180, 210, 255, 0.9); }
 
         /* 写胶囊表单 */
         .capsule-write {
@@ -782,19 +783,11 @@
     <div class="sentence" id="sentence"></div>
     <div class="sign" id="yuSign">屿语</div>
 
-    <!-- ===== 时间胶囊 ===== -->
-    <div class="capsule-btn" id="capsuleBtn" title="时间胶囊">
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="14" y="8" width="20" height="6" rx="3" stroke="rgba(240,235,224,0.4)" stroke-width="1.2" fill="rgba(240,235,224,0.03)"/>
-            <path d="M24 14 C18 14 14 18 14 24 L14 36 C14 39 18 42 24 42 C30 42 34 39 34 36 L34 24 C34 18 30 14 24 14 Z" stroke="rgba(240,235,224,0.4)" stroke-width="1.2" fill="rgba(240,235,224,0.03)"/>
-            <line x1="24" y1="14" x2="24" y2="42" stroke="rgba(240,235,224,0.15)" stroke-width="0.6"/>
-            <circle cx="24" cy="28" r="2" fill="rgba(240,235,224,0.2)"/>
-        </svg>
-    </div>
+    <!-- 时间胶囊入口已移至首页，屿语页不再显示 -->
 
     <div class="capsule-modal hide" id="capsuleModal" style="display:none;">
         <div class="capsule-close" id="capsuleClose"><span class="capsule-close-arrow">←</span><span>回到星海</span></div>
-        <div class="capsule-back" id="capsuleBack" style="display:none;">‹ 返回</div>
+        <div class="capsule-back" id="capsuleBack" style="display:none;">胶囊列表 ›</div>
         <div class="capsule-icon-big">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="14" y="8" width="20" height="6" rx="3" stroke="rgba(240,235,224,0.5)" stroke-width="1.2" fill="rgba(240,235,224,0.05)"/>
@@ -1779,16 +1772,19 @@
             }, 600);
         }
 
-        capsuleBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            openCapsuleList();
-        });
+        // 胶囊入口按钮已移至首页，屿语页不再需要
+        if (capsuleBtn) {
+            capsuleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openCapsuleList();
+            });
 
-        capsuleBtn.addEventListener('touchend', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            openCapsuleList();
-        }, { passive: false });
+            capsuleBtn.addEventListener('touchend', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                openCapsuleList();
+            }, { passive: false });
+        }
 
         capsuleClose.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -1797,9 +1793,9 @@
 
         capsuleModal.addEventListener('click', function(e) {
             if (e.target === capsuleModal) {
-                // 在详情页或写胶囊页时，点空白返回列表而非关闭
+                // 在详情页或写胶囊页时，点空白不做任何事（避免误触）
                 if (capsuleDetail.classList.contains('show') || capWrite.classList.contains('show')) {
-                    showCapsuleList();
+                    return;
                 } else {
                     closeCapsule();
                 }
