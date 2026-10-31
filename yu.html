@@ -1086,6 +1086,7 @@
 
         // ===== 点击换句（排除屿语和里屋门）=====
         document.addEventListener('click', function(e) {
+            if (e.target.closest('.back-btn')) return;
             if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.id === 'yuSign') return;
             if (e.target.closest('.inner-door')) return;
@@ -1096,6 +1097,7 @@
 
         // 防止双击放大
         document.addEventListener('touchend', function(e) {
+            if (e.target.closest('.back-btn')) return;
             if (innerDoor.style.display !== 'none' && !innerDoor.classList.contains('hide')) return;
             if (e.target.id === 'yuSign') return;
             if (e.target.closest('.inner-door')) return;
