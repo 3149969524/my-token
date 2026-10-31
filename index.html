@@ -135,6 +135,48 @@
             100% { width: 100px; height: 100px; opacity: 0; }
         }
 
+        /* ===== 链接星星 ===== */
+        .star-link {
+            position: fixed;
+            left: 50%;
+            top: 18%;
+            transform: translateX(-50%);
+            z-index: 5;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .star-star {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 14px rgba(200,220,255,0.4);
+            animation: starTwinkle 3s ease-in-out infinite;
+        }
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.5; box-shadow: 0 0 4px rgba(255,255,255,0.5), 0 0 10px rgba(200,220,255,0.3); }
+            50% { opacity: 1; box-shadow: 0 0 10px rgba(255,255,255,1), 0 0 20px rgba(200,220,255,0.6), 0 0 35px rgba(150,200,255,0.3); }
+        }
+        .star-label {
+            margin-top: 6px;
+            font-size: 0.5rem;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .star-link:hover .star-star {
+            animation: starTwinkle 1s ease-in-out infinite;
+            width: 8px;
+            height: 8px;
+            box-shadow: 0 0 12px rgba(255,255,255,1), 0 0 25px rgba(200,220,255,0.7), 0 0 45px rgba(150,200,255,0.4);
+        }
+        .star-link:hover .star-label { opacity: 0.7; }
+
         /* ===== 扩散光圈波纹 ===== */
         .hotspot-ripple {
             position: absolute;
@@ -348,6 +390,12 @@
             <span class="hotspot-sub">ABOUT</span>
         </a>
     </div>
+
+    <!-- 链接星星 -->
+    <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="star-link fade-in" style="--d: 1.2s;">
+        <div class="star-star"></div>
+        <span class="star-label">SEVRENVALE</span>
+    </a>
 
     <!-- 标题 -->
     <div class="title-zone fade-in" style="--d: 0.5s;">
