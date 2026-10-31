@@ -8,14 +8,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #667eea;
-            --primary-dark: #764ba2;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gray: #666;
-            --white: #fff;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary: rgba(100,180,255,0.9);
+            --primary-dark: rgba(60,120,255,0.8);
+            --dark: rgba(255,255,255,0.9);
+            --light: #0a0418;
+            --gray: rgba(255,255,255,0.5);
+            --white: rgba(255,255,255,0.95);
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --gradient: linear-gradient(135deg, rgba(100,180,255,0.25) 0%, rgba(60,120,255,0.15) 100%);
+            --glass-border: rgba(100,180,255,0.15);
         }
 
         html { scroll-behavior: smooth; }
@@ -25,13 +26,28 @@
             line-height: 1.6;
             color: var(--dark);
             background: var(--light);
+            background-image: url('galaxy_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
             min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(5,2,15,0.3) 0%, rgba(5,2,15,0.6) 100%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         /* ===== 导航栏 ===== */
         .navbar {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(10, 5, 25, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(100,180,255,0.1);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -74,7 +90,7 @@
 
         /* ===== Hero ===== */
         .hero {
-            background: var(--gradient);
+            background: transparent;
             color: var(--white);
             text-align: center;
             padding: 70px 20px;
@@ -86,7 +102,7 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+            background: radial-gradient(circle, rgba(100,180,255,0.04) 1px, transparent 1px);
             background-size: 30px 30px;
             animation: heroMove 20s linear infinite;
         }
@@ -95,8 +111,8 @@
             100% { transform: translate(30px, 30px); }
         }
         .hero-content { position: relative; z-index: 2; }
-        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .hero p { font-size: 1.1rem; opacity: 0.9; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px rgba(100,180,255,0.5); }
+        .hero p { font-size: 1.1rem; opacity: 0.7; }
 
         /* ===== 内容区域 ===== */
         .content {
@@ -106,7 +122,9 @@
         }
 
         .content-section {
-            background: var(--white);
+            background: rgba(15, 10, 35, 0.65);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(100,180,255,0.12);
             border-radius: 16px;
             padding: 30px 28px;
             box-shadow: var(--shadow);
@@ -119,10 +137,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            color: rgba(255,255,255,0.95);
         }
 
         .content-section p {
-            color: #555;
+            color: rgba(255,255,255,0.65);
             font-size: 0.95rem;
             margin-bottom: 12px;
         }
@@ -132,7 +151,7 @@
             padding: 0;
         }
         .content-section ul li {
-            color: #555;
+            color: rgba(255,255,255,0.65);
             font-size: 0.92rem;
             padding: 6px 0;
             padding-left: 24px;
@@ -142,13 +161,13 @@
             content: '·';
             position: absolute;
             left: 0;
-            color: var(--primary);
+            color: rgba(100,180,255,0.8);
             font-weight: 700;
             font-size: 1.2rem;
         }
 
         /* ===== 页脚 ===== */
-        .footer { text-align: center; color: var(--gray); padding: 40px 20px; font-size: 0.85rem; background: #fff; border-top: 1px solid #eee; }
+        .footer { text-align: center; color: rgba(255,255,255,0.4); padding: 40px 20px; font-size: 0.85rem; background: rgba(10,5,25,0.5); backdrop-filter: blur(10px); border-top: 1px solid rgba(100,180,255,0.08); }
 
         @media (max-width: 600px) {
             .hero h1 { font-size: 2rem; }
@@ -199,7 +218,7 @@
         <div class="content-section" style="text-align:center;">
             <h2 style="justify-content:center;">去留言</h2>
             <p>看完介绍了，去留言板写两句吧！</p>
-            <a href="board.html" style="display:inline-block; background:var(--gradient); color:#fff; padding:12px 36px; border-radius:50px; text-decoration:none; font-size:1rem; font-weight:600; transition:all 0.3s; margin-top:8px;">前往留言板</a>
+            <a href="board.html" style="display:inline-block; background:linear-gradient(135deg, rgba(100,180,255,0.3) 0%, rgba(60,120,255,0.2) 100%); color:rgba(255,255,255,0.95); padding:12px 36px; border-radius:50px; text-decoration:none; font-size:1rem; font-weight:600; transition:all 0.3s; margin-top:8px; border:1px solid rgba(100,180,255,0.2);">前往留言板</a>
         </div>
 
     </section>
