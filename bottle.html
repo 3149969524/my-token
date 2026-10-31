@@ -931,7 +931,8 @@
 
         // ===== 更新漂浮瓶子 =====
         function updateFloatingBottles(totalCount) {
-            var display = Math.min(totalCount, 60);
+            var maxDisplay = canvas.width < 500 ? 30 : 100;
+            var display = Math.min(totalCount, maxDisplay);
             floatingBottles = [];
             var maxSize = canvas.width < 500 ? 16 : 28;
             var minSize = canvas.width < 500 ? 10 : 16;
