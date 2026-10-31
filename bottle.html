@@ -933,17 +933,19 @@
         function updateFloatingBottles(totalCount) {
             var display = Math.min(totalCount, 60);
             floatingBottles = [];
+            var maxSize = canvas.width < 500 ? 16 : 28;
+            var minSize = canvas.width < 500 ? 10 : 16;
             for (var i = 0; i < display; i++) {
                 floatingBottles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height * 0.95,
-                    size: 18 + Math.random() * 22,
+                    size: minSize + Math.random() * (maxSize - minSize),
                     phase: Math.random() * Math.PI * 2,
                     sp: 0.006 + Math.random() * 0.014,
                     vx: (Math.random() < 0.5 ? -1 : 1) * (0.08 + Math.random() * 0.2),
                     alpha: 0.4 + Math.random() * 0.4,
                     driftY: Math.random() * canvas.height * 0.95,
-                    driftRange: 20 + Math.random() * 40
+                    driftRange: 15 + Math.random() * 30
                 });
             }
         }
