@@ -616,10 +616,10 @@
             // 移动端适配：根据屏幕宽度动态调整粒子参数
             const isMobile = canvas.width < 600;
             const pCount = isMobile ? 200 : 280;
-            const pSizeMax = isMobile ? 1.5 : 1.8;
-            const pSizeBase = isMobile ? 0.7 : 0.8;
-            const pBrightMax = isMobile ? 0.2 : 0.25;
-            const pBrightBase = isMobile ? 0.45 : 0.5;
+            const pSizeMax = isMobile ? 0.75 : 1.8;
+            const pSizeBase = isMobile ? 0.35 : 0.8;
+            const pBrightMax = isMobile ? 0.35 : 0.25;
+            const pBrightBase = isMobile ? 0.65 : 0.5;
 
             // 生成吸积盘粒子（扩散状）
             const diskParticles = [];
@@ -781,8 +781,8 @@
 
                     // 多普勒效应
                     const doppler = (Math.cos(p.angle) + 1) * 0.5;
-                    const doppBase = isMobile ? 0.28 : 0.3;
-                    const doppRange = isMobile ? 0.37 : 0.4;
+                    const doppBase = isMobile ? 0.35 : 0.4;
+                    const doppRange = isMobile ? 0.45 : 0.5;
                     const bright = p.brightness * (doppBase + doppler * doppRange) * fadeBoost;
 
                     // 温度梯度：内侧白热，外侧偏蓝
