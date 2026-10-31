@@ -82,8 +82,10 @@
 
         .hotspot {
             position: absolute;
+            left: 0;
+            top: 0;
             transform: translate(-50%, -50%);
-            will-change: left, top, opacity;
+            will-change: transform, opacity;
             text-decoration: none;
             display: flex;
             flex-direction: column;
@@ -1035,6 +1037,7 @@
 
         function animate() {
             drawCanvas();
+            updateOrbits();
             t++;
             requestAnimationFrame(animate);
         }
@@ -1089,18 +1092,15 @@
                 const scale = 0.7 + (depth + 1) * 0.15; // 0.7 ~ 1.0
                 const opacity = 0.55 + (depth + 1) * 0.225; // 0.55 ~ 1.0
 
-                o.el.style.left = x + 'px';
-                o.el.style.top = y + 'px';
-                o.el.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+                // 用 transform3d 替代 left/top，避免布局重排
+                o.el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale.toFixed(3)})`;
                 o.el.style.opacity = opacity.toFixed(3);
                 o.el.style.zIndex = depth > 0 ? 6 : 4; // 近端在上层
             }
-
-            requestAnimationFrame(updateOrbits);
         }
 
         // 等初始定位完成后再启动轨道（略延迟让 fade-in 先走）
-        setTimeout(updateOrbits, 100);
+        setTimeout(updateOrbits, 100); // 只执行一次初始定位，后续由 animate 驱动
 
         function resetHotspots() {
             document.querySelectorAll('.hotspot').forEach(h => {
