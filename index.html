@@ -148,16 +148,16 @@
             align-items: center;
         }
         .star-star {
-            width: 6px;
-            height: 6px;
+            width: 2px;
+            height: 2px;
             border-radius: 50%;
-            background: #fff;
-            box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 14px rgba(200,220,255,0.4);
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 3px rgba(255,255,255,0.5);
             animation: starTwinkle 3s ease-in-out infinite;
         }
         @keyframes starTwinkle {
-            0%, 100% { opacity: 0.5; box-shadow: 0 0 4px rgba(255,255,255,0.5), 0 0 10px rgba(200,220,255,0.3); }
-            50% { opacity: 1; box-shadow: 0 0 10px rgba(255,255,255,1), 0 0 20px rgba(200,220,255,0.6), 0 0 35px rgba(150,200,255,0.3); }
+            0%, 100% { opacity: 0.3; box-shadow: 0 0 2px rgba(255,255,255,0.3); }
+            50% { opacity: 0.8; box-shadow: 0 0 4px rgba(255,255,255,0.6), 0 0 8px rgba(200,220,255,0.2); }
         }
         .star-label {
             margin-top: 6px;
@@ -170,12 +170,12 @@
             pointer-events: none;
         }
         .star-link:hover .star-star {
-            animation: starTwinkle 1s ease-in-out infinite;
-            width: 8px;
-            height: 8px;
-            box-shadow: 0 0 12px rgba(255,255,255,1), 0 0 25px rgba(200,220,255,0.7), 0 0 45px rgba(150,200,255,0.4);
+            animation: starTwinkle 1.5s ease-in-out infinite;
+            width: 3px;
+            height: 3px;
+            box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(200,220,255,0.4);
         }
-        .star-link:hover .star-label { opacity: 0.7; }
+        .star-link:hover .star-label { opacity: 0.6; }
 
         /* ===== 扩散光圈波纹 ===== */
         .hotspot-ripple {
@@ -394,7 +394,7 @@
     <!-- 链接星星 -->
     <a href="https://sevrenvale.cn" target="_blank" rel="noopener" class="star-link fade-in" style="--d: 1.2s;">
         <div class="star-star"></div>
-        <span class="star-label">SEVRENVALE</span>
+        <span class="star-label">情深缘浅</span>
     </a>
 
     <!-- 标题 -->
