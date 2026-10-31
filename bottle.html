@@ -1005,15 +1005,7 @@
         }
 
         async function fetchBottles() {
-            // 先尝试 CDN
-            try {
-                var resp = await fetchWithTimeout(CDN_URL + '?t=' + Date.now(), {}, 8000);
-                if (resp.ok) {
-                    var data = await resp.json();
-                    return { bottles: data.bottles || [], sha: null };
-                }
-            } catch(e) {}
-            // 再尝试 API
+            // 优先走 API（始终返回最新数据，避免 CDN 缓存导致已删除瓶子仍可捞到）
             try {
                 var resp2 = await fetchWithTimeout(API_URL + '?t=' + Date.now(), {
                     headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github+json' }
@@ -1023,6 +1015,14 @@
                     lastSha = data2.sha;
                     var content = JSON.parse(decodeURIComponent(escape(atob(data2.content.replace(/\n/g, '')))));
                     return { bottles: content.bottles || [], sha: data2.sha };
+                }
+            } catch(e) {}
+            // 降级：CDN
+            try {
+                var resp = await fetchWithTimeout(CDN_URL + '?t=' + Date.now(), {}, 8000);
+                if (resp.ok) {
+                    var data = await resp.json();
+                    return { bottles: data.bottles || [], sha: null };
                 }
             } catch(e) {}
             return { bottles: [], sha: null };
